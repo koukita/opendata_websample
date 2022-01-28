@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en"></html>
 <body>
+    <title>緯度経度のあるCSVを地図にポイントで表示</title>
     <meta charset="utf-8">
-    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.js"></script><!--leaflet地図を表示するために必要-->  
+    <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script> -->
+    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.js"></script><!-- leaflet地図を表示するために必要   -->
     <script src="https://koukita.github.io/opendata_websample/Library/leaflet/hash/leaflet-hash.js"></script>  <!--地図移動でアドレスに緯度経度記入するために必要-->    
-    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.css"><!--leaflet地図にスタイル設定するために必要-->
+    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.css"><!-- leaflet地図にスタイル設定するために必要 -->
     <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
 
     <style>
+        /* 地図の大きさを指定 */
         #map_csv{
             width: 100%;
             height: 700px;
@@ -40,8 +44,6 @@
             var csv_column = tmp[0].split(',');
             //UNICODEテキストからJSONを作成
             json01 = csvToJson(csv_unicodeStr01 , { header : 1, columnName : csv_column});
-            console.log(csv_unicodeStr01)
-            console.log(json01)
         
             //==================================================
             //Leaflet地図を表示する
@@ -67,7 +69,7 @@
 
             for (i = 0; i < json01.length; i++) {
                 //地図上に表示するデータの設定
-                var marker = L.marker([(json01[i].ycoord), (json01[i].xcoord)],{
+                var marker = L.marker([(json01[i].ycoord), (json01[i].xcoord)],{title:(json01[i].市町村名)
                 // //ポップアップの内容
                 }).bindPopup((json01[i].市町村名)).addTo(map);
             };        
