@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"></html>
 <body>
-    <title>緯度経度のあるCSVを地図にポイントで表示</title>
+    <title>重なったポイントをクラスタリング</title>
     <meta charset="utf-8">
     <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script> -->
@@ -9,7 +9,12 @@
     <script src="https://koukita.github.io/opendata_websample/Library/leaflet/hash/leaflet-hash.js"></script>  <!--地図移動でアドレスに緯度経度記入するために必要-->    
     <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.css"><!-- leaflet地図にスタイル設定するために必要 -->
     <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
-
+    
+    <!-- クラスタリングするプラグイン -->
+    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/markercluster/src/MarkerCluster.js"></script>
+    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/markercluster/dist/MarkerCluster.Default.css" />
+    
     <style>
         /* 地図の大きさを指定 */
         #map_csv{
@@ -18,7 +23,7 @@
         }
     </style>
 
-    緯度経度のあるCSVを地図にポイントで表示
+    緯度経度のあるCSVを地図にポイントで表示（重なったポイントをクラスタリング）
     <div id="map_csv"></div>
 	<script>
         //=======================================================
@@ -68,12 +73,20 @@
             map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
             var bounds_group = new L.featureGroup([]);
 
+            //===マーカーをクラスタリングする=========================
+            //【Leaflet.markercluster】（https://github.com/Leaflet/Leaflet.markercluster）
+            //参考としたサイト［https://qiita.com/mitch0807/items/52698a561d4255578657］
+            var markers = L.markerClusterGroup({maxClusterRadius:1}); //まとめる距離を1に設定
             for (i = 0; i < json01.length; i++) {
                 //地図上に表示するデータの設定
                 var marker = L.marker([(json01[i].緯度), (json01[i].経度)],{title:(json01[i].市町村名)
                 // //ポップアップの内容
-                }).bindPopup((json01[i].市町村名)).addTo(map);
-            };        
+                }).bindPopup((json01[i].市町村名));
+                markers.addLayer(marker);
+            };
+            map.addLayer(markers);
+            //=========================クラスタリングはここまで======
+            
         }; //CSV読み込み終了    
         
 
@@ -131,13 +144,6 @@
                         } else {
                             row = null;
                         }
-                        //ヘッダーを設定  この変換はこのデータ用のカスタム
-                        // d_heder = options.columnName[j]
-                        // if(d_heder.match(/市町村/)){ //何故か市町村名のヘッダーに「"」が付くので、つかないように変換する
-                        //     data['市町村名'] = row;
-                        // } else {
-                        //     data[d_heder] = row;  //市町村名以外はそのままのヘッダーを使用
-                        // }
                         data[options.columnName[j]] = row;  //通常はこれ
                     }
                     json.push(data);  //１行づつjsonに追加
