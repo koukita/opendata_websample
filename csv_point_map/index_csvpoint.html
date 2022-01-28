@@ -2,9 +2,9 @@
 <html lang="en"></html>
 <body>
     <meta charset="utf-8">
-    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.js"></script>
-    <script src="https://koukita.github.io/opendata/hodmap/js/leaflet-hash.js"></script>  <!--地図を表示するのに必要-->    
-    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.css">
+    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.js"></script><!--leaflet地図を表示するために必要-->  
+    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/hash/leaflet-hash.js"></script>  <!--地図に著作権を表示するために必要-->    
+    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.css"><!--leaflet地図にスタイル設定するために必要-->
     <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
 
     <style>
@@ -45,7 +45,33 @@
             //==================================================
             //Leaflet地図を表示する
             //==================================================
-            //地理院地図
+            //＝＝＝URLに緯度経度、Zoomレベルを入力する＝＝＝＝
+            //初期値
+            var center_lat=43.193001;
+            var center_lng=141.279533;
+            var zoom_level=12; 
+            //URLパラメータの緯度経度、ズームレベルを取得する
+            //参考：http://qiita.com/tonkatu_tanaka/items/99d167ded9330dbc4019
+            var arg = new Object; //変数をオブジェクトで作成
+            var pair = location.search.substring(1).split('/');    //URLの後ろの「？」からで「＆」で区切ったものを配列で代入
+            console.log(location.search.substring(1))
+            //パラメータの数だけループ
+            for(var i=0;pair[i];i++) {
+                //「=」で区切って、キーと値に分ける
+                var kv = pair[i].split('=');
+                //変数argに配列を代入
+                arg[kv[0]]=kv[1];
+            };
+
+            //URLにパラメータがある場合に、緯度経度とズームレベルを更新する
+            if(i>0){
+                //配列から緯度経度とズームレベルを表示する
+                center_lat = arg.lat;
+                center_lng = arg.lng;
+                zoom_level = arg.zoom;
+            };
+
+            //地理院地図            
             var m_Chiriin = new L.tileLayer('http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
                 attribution: "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>",
                 opacity: 1.0,
@@ -57,9 +83,11 @@
                 zoom: 7,                                //初期表示のズームレベル
                 layers: [m_Chiriin],                                  
             });
-            var hash = new L.Hash(map);                  //著作権表示
-                map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
-                var bounds_group = new L.featureGroup([]);
+            //アドレスに
+            var hash = new L.Hash(map);
+            //著作権表示
+            map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
+            var bounds_group = new L.featureGroup([]);
         
         };    
         
