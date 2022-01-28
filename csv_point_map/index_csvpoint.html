@@ -25,7 +25,7 @@
         //緯度経度のあるCSVをポイントとして地図に表示
         //=======================================================
         //データCSVのURL
-        var csv01Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/hokkaido_citypoint_4326.csv"
+        var csv01Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/yakuba.csv"
 
         //CSVを読み込んで、文字コードを変換後Jsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         var req01 = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
@@ -66,10 +66,10 @@
             //著作権表示
             map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
             var bounds_group = new L.featureGroup([]);
-            
+            console.log(json01)
             for (i = 0; i < json01.length; i++) {
                 //地図上に表示するデータの設定
-                var marker = L.marker([(json01[i].ycoord), (json01[i].xcoord)],{
+                var marker = L.marker([(json01[i].緯度), (json01[i].経度)],{
                     title:(json01[i].市町村名)
                 // //ポップアップの内容
                 }).bindPopup((json01[i].市町村名)).addTo(map);
