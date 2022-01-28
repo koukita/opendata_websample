@@ -1,75 +1,54 @@
 <!DOCTYPE html>
 <html lang="en"></html>
 <body>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/leaflet.css">
+    <meta charset="utf-8">
+    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.js"></script>    
+    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.css">
+    <script type="text/JavaScript" src="https://koukita.github.io/websample/js/encoding.min.js"></script> <!--CSVの文字コード変更-->
 
-  <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/leaflet_v1.3.4.css" />
-  <script src="https://koukita.github.io/opendata/hodmap/js/leaflet_v1.3.4.js"></script>
-  <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script type="text/JavaScript" src="https://koukita.github.io/websample/js/encoding.min.js"></script> <!--CSVの文字コード変更-->
+    <style>
+        #map_csv{
+            width: 100%;
+            height: 500px;
+        }
+    </style>
 
-  <!-- クラスタリングするプラグイン -->
-  <!-- <script src="https://koukita.github.io/opendata/hodmap/js/leaflet.markercluster.js"></script>
-  <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/MarkerCluster.Default.css" /> -->
-  <!-- 参考にしたサイトURL：https://qiita.com/mitch0807/items/52698a561d4255578657 -->
-
-  <style>
-    #mapid { height: 700px; }
-  </style>
-
-  北海道Society5.0事例マップ
-  <div id="mapid"></div>
+    緯度経度のあるCSVを地図にポイントで表示
+    <div id="map_csv"></div>
 	<script>
         //=======================================================
-        //２つのCSVをJsonに変換し結合、地図にマーカーとして表示する
+        //緯度経度のあるCSVをポイントとして地図に表示
         //=======================================================
         //データCSVのURL
-        var csv01Url = "data/test_kanko.csv"
-        var csv02Url = "data/test_location.csv"
+        var csv01Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/hokkaido_citypoint_4326.csv"
 
         //CSVを読み込んで、文字コードを変換後Jsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-        var req = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
-        req.open("get", csv01Url, true); // アクセスするファイルを指定
-        req.responseType = 'arraybuffer'; //CSVをバイナリデータとして読み込み（重要）
-        req.send(null); // HTTPリクエストの発行
+        var req01 = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
+        req01.open("get", csv01Url, true); // アクセスするファイルを指定
+        req01.responseType = 'arraybuffer'; //CSVをバイナリデータとして読み込み（重要）
+        req01.send(null); // HTTPリクエストの発行
         var json01 = [];
         // 非同期CSVのレスポンスが返ってきたら地図作成処理を行う
         //文字コードを変換後にJsonに変換
-        req.onload = function(){
+        req01.onload = function(){
             //＝＝１つ目のCSVを文字コードの変換をしてからJsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝
             //CSVファイルの文字コードを変換
-            var csv_unicodeStr01 = csv_unicode(req.response) //SJISのテキストデータを渡す
+            var csv_unicodeStr01 = csv_unicode(req01.response) //UNICODEに変換する関数にデータを渡す
             var tmp = csv_unicodeStr01.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
             // カラム名の取得に使うために配列を作成する
             var csv_column = tmp[0].split(',');
             //UNICODEテキストからJSONを作成
             json01 = csvToJson(csv_unicodeStr01 , { header : 1, columnName : csv_column});
-            console.log(json01);
+            console.log(json01)
+        
+            //==================================================
+            //Leaflet地図を表示する
+            //==================================================
+
+
+        
         };    
-        console.log(json01);
-            
-        //＝＝２つ目のCSVを文字コードの変換をしてからJsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-        var req02 = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
-        req02.open("get", csv02Url, true); // アクセスするファイルを指定
-        req02.responseType = 'arraybuffer'; //CSVをバイナリデータとして読み込み（重要）
-        req02.send(null); // HTTPリクエストの発行
-        req02.onload = function(){
-
-            //CSVファイルの文字コードを変換
-            var csv_unicodeStr02 = csv_unicode(req02.response) //SJISのテキストデータを渡す
-            var tmp = csv_unicodeStr01.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
-            // カラム名の取得に使うために配列を作成する
-            var csv_column = tmp[0].split(',');
-            //UNICODEテキストからJSONを作成
-            var json02 = csvToJson(csv_unicodeStr02 , { header : 1, columnName : csv_column});
-            
-        };
-        console.log("テスト");
-
-
-
+        
 
         //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         //   CSVの文字コードをUNICODEに変換する関数
@@ -86,7 +65,7 @@
                 unicodeStr = unicodeStr.replace(/\r/g, '') //Excel特有の改行コード「\r」を削除
             }
             return unicodeStr;
-        };
+        }; //＝＝＝ここまで＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
 
         //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
