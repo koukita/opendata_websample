@@ -16,6 +16,21 @@
             width: 100%;
             height: 700px;
         }
+        .circle{
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 80px;
+            background: skyblue;/*背景色*/
+        }
+        .divicon {	/* 文字ラベル */
+            color: #f00;
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 
     緯度経度のあるCSVを地図にポイントで表示
@@ -68,9 +83,18 @@
             var bounds_group = new L.featureGroup([]);
             
             for (i = 0; i < json01.length; i++) {
+                //マーカーにラベルを表示 [参考にしたサイト（https://2ndart.hatenablog.com/entry/2021/04/28/112259）]
+                var myicon = L.divIcon({
+                    html:'<div class="circle">' + json01[i].市町村名 + '</div>',
+                    // iconUrl:'https://koukita.github.io/opendata_websample/Library/leaflet/map/images/marker-icon.png',
+                    // iconRetinaUrl:'https://koukita.github.io/opendata_websample/Library/leaflet/map/images/marker-icon.png',
+                    iconSize:[0,0],
+                    bgPos:[400,400]
+                });
                 //地図上に表示するデータの設定
                 var marker = L.marker([(json01[i].ycoord), (json01[i].xcoord)],{
-                    title:(json01[i].市町村名)
+                    title:(json01[i].市町村名),
+                    icon:myicon
                 // //ポップアップの内容
                 }).bindPopup((json01[i].市町村名)).addTo(map);
             };        
