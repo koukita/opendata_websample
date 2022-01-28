@@ -25,7 +25,7 @@
         //緯度経度のあるCSVをポイントとして地図に表示
         //=======================================================
         //データCSVのURL
-        var csv01Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/hokkaido_citypoint_4326.csv"
+        var csv01Url = "https://koukita.github.io/opendata_websample/csv_cluster_map/data/hokkaido_citypoint_cluster_4326.csv"
 
         //CSVを読み込んで、文字コードを変換後Jsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         var req01 = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
@@ -44,6 +44,7 @@
             var csv_column = tmp[0].split(',');
             //UNICODEテキストからJSONを作成
             json01 = csvToJson(csv_unicodeStr01 , { header : 1, columnName : csv_column});
+            console.log(json01)
         
             //==================================================
             //Leaflet地図を表示する
@@ -69,7 +70,7 @@
 
             for (i = 0; i < json01.length; i++) {
                 //地図上に表示するデータの設定
-                var marker = L.marker([(json01[i].ycoord), (json01[i].xcoord)],{title:(json01[i].市町村名)
+                var marker = L.marker([(json01[i].緯度), (json01[i].経度)],{title:(json01[i].市町村名)
                 // //ポップアップの内容
                 }).bindPopup((json01[i].市町村名)).addTo(map);
             };        
@@ -131,13 +132,13 @@
                             row = null;
                         }
                         //ヘッダーを設定  この変換はこのデータ用のカスタム
-                        d_heder = options.columnName[j]
-                        if(d_heder.match(/市町村/)){ //何故か市町村名のヘッダーに「"」が付くので、つかないように変換する
-                            data['市町村名'] = row;
-                        } else {
-                            data[d_heder] = row;  //市町村名以外はそのままのヘッダーを使用
-                        }
-                        //data[options.columnName[j]] = row;  //通常はこれ
+                        // d_heder = options.columnName[j]
+                        // if(d_heder.match(/市町村/)){ //何故か市町村名のヘッダーに「"」が付くので、つかないように変換する
+                        //     data['市町村名'] = row;
+                        // } else {
+                        //     data[d_heder] = row;  //市町村名以外はそのままのヘッダーを使用
+                        // }
+                        data[options.columnName[j]] = row;  //通常はこれ
                     }
                     json.push(data);  //１行づつjsonに追加
                 } else {
