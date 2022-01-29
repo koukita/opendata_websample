@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.css"><!-- leaflet地図にスタイル設定するために必要 -->
     <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
 
+    <!-- クラスタリングするプラグイン -->
+    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/markercluster/src/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/markercluster/dist/MarkerCluster.Default.css" />
+
     <style>
         /* 地図の大きさを指定 */
         #map_csv{
@@ -88,11 +93,11 @@
                 // アイコンサイズの設定など
                 var LeafIcon = L.Icon.extend({
                     options: {
-                    // shadowUrl: 'icon/Shadow.png', // シャドウ付きアイコンを使う場合は、削除もしくはコメントアウト
-                    // shadowSize: [41, 41], // シャドウ付きアイコンを使う場合は、削除もしくはコメントアウト
-                    // shadowAnchor: [10, 41], // シャドウ付きアイコンを使う場合は、削除もしくはコメントアウト
-                    iconSize: [41, 41], // シャドウ付きアイコンを使う場合は、[41, 41]に設定
-                    iconAnchor: [10, 41],
+                    shadowUrl: 'https://koukita.github.io/opendata_websample/Society5_Jirei_Map/image/marker-shadow.png', // シャドウ付きアイコンを使う場合は、削除もしくはコメントアウト
+                    shadowSize: [41, 41], // シャドウ付きアイコンを使う場合は、削除もしくはコメントアウト
+                    shadowAnchor: [10, 41], // シャドウ付きアイコンを使う場合は、削除もしくはコメントアウト
+                    iconSize: [30, 30], // シャドウ付きアイコンを使う場合は、[41, 41]に設定
+                    iconAnchor: [10, 28],
                     popupAnchor: [3, -40]
                 }
                 });
@@ -107,13 +112,58 @@
                 //著作権表示
                 map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
                 var bounds_group = new L.featureGroup([]);
+                
+                //ポイントマーカーの表示
+                //===マーカーをクラスタリングする=========================
+                //【Leaflet.markercluster】（https://github.com/Leaflet/Leaflet.markercluster）
+                //参考としたサイト［https://qiita.com/mitch0807/items/52698a561d4255578657］
+                var markers = L.markerClusterGroup({maxClusterRadius:1}); //まとめる距離を1に設定 
+
                 for (i = 0; i < marge_json.length; i++) {
+
+                    //データの内容によってアイコンを変える設定
+                    if ((marge_json[i].区分) == '暮らし'){
+                        var myicon = OrangeIcon
+                    } else if(((marge_json[i].区分) == '産業')){
+                        var myicon = RedIcon
+                    } else if(((marge_json[i].区分) == '行政')){
+                        var myicon = GreenIcon
+                    } else if(((marge_json[i].区分) == 'その他')){
+                        var myicon = BlueIcon
+                    };
+                    
+                    //ポップアップ時に表示する吹き出し（テーブル）の設定
+                    var popupContent = '<table width="300">\
+                            <col width="50">\
+                            <col width="150">\
+                            <tr>\
+                                <th scope="row">市町村</th>\
+                                <td>' + (marge_json[i].市町村 !== null ? String(marge_json[i].市町村) : '') + '</td>\
+                            </tr>\
+                            <tr>\
+                                <th scope="row">区分</th>\
+                                <td>' + (marge_json[i].区分 !== null ? String(marge_json[i].区分) : '') + '</td>\
+                            </tr>\
+                            <tr>\
+                                <th scope="row">内容</th>\
+                                <td>' + (marge_json[i].事例の内容 !== null ? String(marge_json[i].事例の内容) : '') + '</td>\
+                            </tr>\
+                            <tr>\
+                                <th scope="row">事例URL</th>\
+                                <td>' + (marge_json[i].URL !== null ? '<a href=' + String(marge_json[i].URL) + ' target="_blank">事例のページ</a>': '') + '</td>\
+                            </tr>\
+                        </table>'; 
+        
                     //地図上に表示するデータの設定
                     var marker = L.marker([(marge_json[i].緯度), (marge_json[i].経度)],{
-                        icon: GreenIcon,title:(marge_json[i].市町村名)
-                    // //ポップアップの内容
-                    }).bindPopup((marge_json[i].市町村名)).addTo(map);
+                        //アイコンの設定とタイトル（マウスを合わせると表示される値）の設定
+                        icon: myicon,title:(marge_json[i].市町村名)
+                    //ポップアップの内容
+                    }).bindPopup((popupContent));
+                    markers.addLayer(marker); //クラスタリングする場合はmarkers変数にマーカーを格納
                 };
+                map.addLayer(markers); //クラスタリングしたマーカー群を地図に追加
+
                 //=======================================地図表示はここまで==================
             }; //========================================２つ目のCSV読み込みここまで=========
 
