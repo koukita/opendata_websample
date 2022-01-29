@@ -1,75 +1,81 @@
 <!DOCTYPE html>
 <html lang="en"></html>
 <body>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/leaflet.css">
+    <title>緯度経度のあるCSVを地図にポイントで表示</title>
+    <meta charset="utf-8">
+    <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script> -->
+    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.js"></script><!-- leaflet地図を表示するために必要   -->
+    <script src="https://koukita.github.io/opendata_websample/Library/leaflet/hash/leaflet-hash.js"></script>  <!--地図移動でアドレスに緯度経度記入するために必要-->    
+    <link rel="stylesheet" href="https://koukita.github.io/opendata_websample/Library/leaflet/map/leaflet.css"><!-- leaflet地図にスタイル設定するために必要 -->
+    <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
 
-  <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/leaflet_v1.3.4.css" />
-  <script src="https://koukita.github.io/opendata/hodmap/js/leaflet_v1.3.4.js"></script>
-  <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script type="text/JavaScript" src="https://koukita.github.io/websample/js/encoding.min.js"></script> <!--CSVの文字コード変更-->
+    <style>
+        /* 地図の大きさを指定 */
+        #map_csv{
+            width: 100%;
+            height: 700px;
+        }
+    </style>
 
-  <!-- クラスタリングするプラグイン -->
-  <!-- <script src="https://koukita.github.io/opendata/hodmap/js/leaflet.markercluster.js"></script>
-  <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/MarkerCluster.Default.css" /> -->
-  <!-- 参考にしたサイトURL：https://qiita.com/mitch0807/items/52698a561d4255578657 -->
-
-  <style>
-    #mapid { height: 700px; }
-  </style>
-
-  北海道Society5.0事例マップ
-  <div id="mapid"></div>
+    緯度経度のあるCSVを地図にポイントで表示
+    <div id="map_csv"></div>
 	<script>
         //=======================================================
-        //２つのCSVをJsonに変換し結合、地図にマーカーとして表示する
+        //緯度経度のあるCSVをポイントとして地図に表示
         //=======================================================
         //データCSVのURL
-        var csv01Url = "data/test_kanko.csv"
-        var csv02Url = "data/test_location.csv"
+        var csv01Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/hokkaido_yakuba.csv"
 
         //CSVを読み込んで、文字コードを変換後Jsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-        var req = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
-        req.open("get", csv01Url, true); // アクセスするファイルを指定
-        req.responseType = 'arraybuffer'; //CSVをバイナリデータとして読み込み（重要）
-        req.send(null); // HTTPリクエストの発行
+        var req01 = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
+        req01.open("get", csv01Url, true); // アクセスするファイルを指定
+        req01.responseType = 'arraybuffer'; //CSVをバイナリデータとして読み込み（重要）
+        req01.send(null); // HTTPリクエストの発行
         var json01 = [];
         // 非同期CSVのレスポンスが返ってきたら地図作成処理を行う
         //文字コードを変換後にJsonに変換
-        req.onload = function(){
+        req01.onload = function(){
             //＝＝１つ目のCSVを文字コードの変換をしてからJsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝
             //CSVファイルの文字コードを変換
-            var csv_unicodeStr01 = csv_unicode(req.response) //SJISのテキストデータを渡す
+            var csv_unicodeStr01 = csv_unicode(req01.response) //UNICODEに変換する関数にデータを渡す
             var tmp = csv_unicodeStr01.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
             // カラム名の取得に使うために配列を作成する
             var csv_column = tmp[0].split(',');
             //UNICODEテキストからJSONを作成
             json01 = csvToJson(csv_unicodeStr01 , { header : 1, columnName : csv_column});
-            console.log(json01);
-        };    
-        console.log(json01);
-            
-        //＝＝２つ目のCSVを文字コードの変換をしてからJsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-        var req02 = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
-        req02.open("get", csv02Url, true); // アクセスするファイルを指定
-        req02.responseType = 'arraybuffer'; //CSVをバイナリデータとして読み込み（重要）
-        req02.send(null); // HTTPリクエストの発行
-        req02.onload = function(){
+        
+            //==================================================
+            //Leaflet地図を表示する
+            //==================================================
 
-            //CSVファイルの文字コードを変換
-            var csv_unicodeStr02 = csv_unicode(req02.response) //SJISのテキストデータを渡す
-            var tmp = csv_unicodeStr01.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
-            // カラム名の取得に使うために配列を作成する
-            var csv_column = tmp[0].split(',');
-            //UNICODEテキストからJSONを作成
-            var json02 = csvToJson(csv_unicodeStr02 , { header : 1, columnName : csv_column});
-            
-        };
-        console.log("テスト");
+            //地理院地図            
+            var m_Chiriin = new L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+                attribution: "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>",
+                opacity: 1.0,
+                attribution: '地理院地図' });
 
-
-
+            var map = L.map('map_csv', {
+                zoomControl:true, maxZoom:18, minZoom:7,  //ズームコントロール、ズームレベル
+                center:[43.517,142.614],                 //初期表示の中心位置
+                zoom: 7,                                //初期表示のズームレベル
+                layers: [m_Chiriin],                                  
+            });
+            //アドレスにズームレベル、緯度経度を記入し、再度同じ表示をすることができる
+            var hash = new L.Hash(map);
+            //著作権表示
+            map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
+            var bounds_group = new L.featureGroup([]);
+            console.log(json01)
+            for (i = 0; i < json01.length; i++) {
+                //地図上に表示するデータの設定
+                var marker = L.marker([(json01[i].緯度), (json01[i].経度)],{
+                    title:(json01[i].市町村名)
+                // //ポップアップの内容
+                }).bindPopup((json01[i].市町村名)).addTo(map);
+            };        
+        }; //CSV読み込み終了    
+        
 
         //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         //   CSVの文字コードをUNICODEに変換する関数
@@ -86,7 +92,7 @@
                 unicodeStr = unicodeStr.replace(/\r/g, '') //Excel特有の改行コード「\r」を削除
             }
             return unicodeStr;
-        };
+        }; //＝＝＝ここまで＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
 
         //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
@@ -105,16 +111,17 @@
                 if (userOptions.columnName) options.columnName = userOptions.columnName;
             }
         
-            var rows = csvStr.split('\n');
+            var rows = csvStr.split('\n');  //改行コードで行を分割し配列に代入
             var json = [], line = [], row = '', data = {};
             var i, len, j, len2;
         
+            //１行ずつデータを分割し、Json形式に変換
             for (i = 0, len = rows.length; i < len; i++) {
                 if ((i + 1) <= options.header) continue;
                 if (options.ignoreBlankLine && rows[i] === '') continue;
         
-                line = rows[i].split(',');
-        
+                line = rows[i].split(',');  //カンマ「,」区切りで配列に値を代入
+
                 if (options.columnName.length > 0) {
                     data = {};
                     for (j = 0, len2 = options.columnName.length; j < len2; j++) {
@@ -124,10 +131,16 @@
                         } else {
                             row = null;
                         }
-        
-                        data[options.columnName[j]] = row;
+                        //ヘッダーを設定  この変換はこのデータ用のカスタム
+                        d_heder = options.columnName[j]
+                        if(d_heder.match(/市町村/)){ //何故か市町村名のヘッダーに「"」が付くので、つかないように変換する
+                            data['市町村名'] = row;
+                        } else {
+                            data[d_heder] = row;  //市町村名以外はそのままのヘッダーを使用
+                        }
+                        //data[options.columnName[j]] = row;  //通常はこれ
                     }
-                    json.push(data);
+                    json.push(data);  //１行づつjsonに追加
                 } else {
                     json.push(line);
                 }
