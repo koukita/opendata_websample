@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en"></html>
+<body>
+    <title>北海道Society5.0事例集　CSVテーブル</title>
+    <meta charset="utf-8">
+    <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
+
+    北海道Society5.0事例集　テーブル
+    <div id="map_csv"></div>
+    <h2>暮らし</h2>
+    <div id="table_kurashi"></div>
+    <h2>産業</h2>
+    <div id="table_sangyou"></div>
+    <h2>行政</h2>
+    <div id="table_gyousei"></div>
+    <h2>その他</h2>
+    <div id="table_sonota"></div>
+
+	<script>
+        //=======================================================
+        //CSVでテーブルを作成
+        //=======================================================
+        //データCSVのURL
+        var csvUrl_jirei = "https://koukita.github.io/opendata_websample/Society5_Jirei_Map/data/society_jirei.csv"
+
+        //CSVを読み込んで、文字コードを変換後Jsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        var req_jirei = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
+        req_jirei.open("get", csvUrl_jirei, true); // アクセスするファイルを指定
+        req_jirei.responseType = 'arraybuffer'; //CSVをバイナリデータとして読み込み（重要）
+        req_jirei.send(null); // HTTPリクエストの発行
+        var json_jirei = [];
+        // 非同期CSVのレスポンスが返ってきたら地図作成処理を行う
+        //文字コードを変換後にJsonに変換
+        req_jirei.onload = function(){
+            //＝＝１つ目のCSVを文字コードの変換をしてからJsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+            //CSVファイルの文字コードを変換
+            var csv_unicodeStr01 = csv_unicode(req_jirei.response) //UNICODEに変換する関数にデータを渡す
+            var tmp = csv_unicodeStr01.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
+            // カラム名の取得に使うために配列を作成する
+            var csv_column = tmp[0].split(',');
+            //UNICODEテキストからJSONを作成
+            json_jirei = csvToJson(csv_unicodeStr01 , { header : 1, columnName : csv_column});
+            console.log(json_jirei)
+
+            //テーブルを繰り返し作成する用の配列を作成
+            var my_kubun = [['暮らし','table_kurashi'],['産業','table_sangyou'],['行政','table_gyousei'],['その他','table_sonota']]
+            //事例をテーブルにする
+            //区分ごとに繰り返し処理で分けて作成する
+            for (ku = 0; ku < my_kubun.length; ku++){
+                // テーブルをHTMLで作成し、<div>に描画する
+                var tableStr = '<table border="1" style="border-collapse: collapse">'  //1本線
+                //テーブルのヘッダを作成
+                tableStr = tableStr + '<thead><tr bgcolor="#c0c0c0">' 
+                tableStr = tableStr + '<th align="center" width="80">市町村</th>'
+                tableStr = tableStr + '<th align="center" width="500">事例</th>'
+                tableStr = tableStr + '</tr></thead><tbody>'  //終了タグ書き込み
+                //1行ずつ追加
+                for (i = 0; i < json_jirei.length; i++) {
+                    if (json_jirei[i].区分 == my_kubun[ku][0]){
+                        //テーブルの各行を作成 
+                        tableStr = tableStr + '<tr>'
+                        tableStr = tableStr + '<td align="center">' + json_jirei[i].市町村 + '</td>'
+                        tableStr = tableStr + '<td align="left"><a href=' + json_jirei[i].URL + ' target="_blank">' + json_jirei[i].事例の内容 + '</a></td>'
+                        tableStr = tableStr + '</tr>'  //終了タグ
+                        
+                    };
+
+                };    
+                tableStr= tableStr + '</tbody></table>'  //テーブルの終了タグ
+                document.getElementById(my_kubun[ku][1]).innerHTML = tableStr  //HTMLに書き込み
+            };
+
+                
+        }; //CSV読み込み終了    
+        
+
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //   CSVの文字コードをUNICODEに変換する関数
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        var csv_unicode = function(sjisStr) {
+            //UNICODEに文字コード変換したCSVを作成
+            if (sjisStr){
+                var sjisArray = new Uint8Array(sjisStr)  //文字コードで配列を作成
+                var unicodeArray = Encoding.convert(sjisArray,{ //encoding.jsでSJISをUNIDODEに変換
+                    to: 'UNICODE',
+                    from: 'AUTO'  //文字コードの判定は自動
+                });
+                var unicodeStr = Encoding.codeToString(unicodeArray); //UNICODEのテキストデータ
+                unicodeStr = unicodeStr.replace(/\r/g, '') //Excel特有の改行コード「\r」を削除
+            }
+            return unicodeStr;
+        }; //＝＝＝ここまで＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //   CSVをJsonに変換する関数
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        var csvToJson = function(csvStr, userOptions) {
+            if (typeof csvStr !== 'string') return null;
+            //options
+            //header : 除外するヘッダーの行番号（数値）
+            //columnName : カラム名（配列）
+            //ignoreBlankLine : 空白行の除外（ブーリアン）
+            var options = { header : 0, columnName : [], ignoreBlankLine : true };
+        
+            if (userOptions) {
+                if (userOptions.header) options.header = userOptions.header;
+                if (userOptions.columnName) options.columnName = userOptions.columnName;
+            }
+        
+            var rows = csvStr.split('\n');  //改行コードで行を分割し配列に代入
+            var json = [], line = [], row = '', data = {};
+            var i, len, j, len2;
+        
+            //１行ずつデータを分割し、Json形式に変換
+            for (i = 0, len = rows.length; i < len; i++) {
+                if ((i + 1) <= options.header) continue;
+                if (options.ignoreBlankLine && rows[i] === '') continue;
+        
+                line = rows[i].split(',');  //カンマ「,」区切りで配列に値を代入
+
+                if (options.columnName.length > 0) {
+                    data = {};
+                    for (j = 0, len2 = options.columnName.length; j < len2; j++) {
+                        if (typeof line[j] !== 'undefined') {
+                            row = line[j];
+                            row = row.replace(/^"(.+)?"$/, '$1');
+                        } else {
+                            row = null;
+                        }
+                        data[options.columnName[j]] = row;  //通常はこれ
+                    }
+                    json.push(data);  //１行づつjsonに追加
+                } else {
+                    json.push(line);
+                }
+            }
+        
+            return json;
+        };
+    </script>
+</body>
+</html>

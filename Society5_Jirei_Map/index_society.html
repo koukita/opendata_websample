@@ -18,13 +18,22 @@
     <style>
         /* 地図の大きさを指定 */
         #map_csv{
-            width: 100%;
+            width: 80%;
             height: 700px;
         }
     </style>
 
     北海道Society5.0事例集
     <div id="map_csv"></div>
+    <h2>暮らし</h2>
+    <div id="table_kurashi"></div>
+    <h2>産業</h2>
+    <div id="table_sangyou"></div>
+    <h2>行政</h2>
+    <div id="table_gyousei"></div>
+    <h2>その他</h2>
+    <div id="table_sonota"></div>
+
 	<script>
         //=======================================================
         //緯度経度のあるCSVをポイントとして地図に表示
@@ -169,6 +178,59 @@
 
         }; //CSV読み込み終了    
         
+        //=======================================================
+        //CSVでテーブルを作成
+        //=======================================================
+
+        //CSVを読み込んで、文字コードを変換後Jsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        var req_jirei = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
+        req_jirei.open("get", csv01Url, true); // アクセスするファイルを指定
+        req_jirei.responseType = 'arraybuffer'; //CSVをバイナリデータとして読み込み（重要）
+        req_jirei.send(null); // HTTPリクエストの発行
+        var json_jirei = [];
+        // 非同期CSVのレスポンスが返ってきたら地図作成処理を行う
+        //文字コードを変換後にJsonに変換
+        req_jirei.onload = function(){
+            //＝＝１つ目のCSVを文字コードの変換をしてからJsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+            //CSVファイルの文字コードを変換
+            var csv_unicodeStr01 = csv_unicode(req_jirei.response) //UNICODEに変換する関数にデータを渡す
+            var tmp = csv_unicodeStr01.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
+            // カラム名の取得に使うために配列を作成する
+            var csv_column = tmp[0].split(',');
+            //UNICODEテキストからJSONを作成
+            json_jirei = csvToJson(csv_unicodeStr01 , { header : 1, columnName : csv_column});
+            console.log(json_jirei)
+
+            //テーブルを繰り返し作成する用の配列を作成 [抽出条件,テーブルID]
+            var my_kubun = [['暮らし','table_kurashi'],['産業','table_sangyou'],['行政','table_gyousei'],['その他','table_sonota']]
+            //事例をテーブルにする
+            //区分ごとに繰り返し処理で分けて作成する
+            for (ku = 0; ku < my_kubun.length; ku++){
+                // テーブルをHTMLで作成し、<div>に描画する
+                var tableStr = '<table border="1" style="border-collapse: collapse">'  //1本線
+                //テーブルのヘッダを作成
+                tableStr = tableStr + '<thead><tr bgcolor="#c0c0c0">' 
+                tableStr = tableStr + '<th align="center" width="80">市町村</th>'
+                tableStr = tableStr + '<th align="center" width="500">事例</th>'
+                tableStr = tableStr + '</tr></thead><tbody>'  //終了タグ書き込み
+                //1行ずつ追加
+                for (i = 0; i < json_jirei.length; i++) {
+                    if (json_jirei[i].区分 == my_kubun[ku][0]){
+                        //テーブルの各行を作成 
+                        tableStr = tableStr + '<tr>'
+                        tableStr = tableStr + '<td align="center">' + json_jirei[i].市町村 + '</td>'
+                        tableStr = tableStr + '<td align="left"><a href=' + json_jirei[i].URL + ' target="_blank">' + json_jirei[i].事例の内容 + '</a></td>'
+                        tableStr = tableStr + '</tr>'  //終了タグ
+                        
+                    };
+
+                };    
+                tableStr= tableStr + '</tbody></table>'  //テーブルの終了タグ
+                document.getElementById(my_kubun[ku][1]).innerHTML = tableStr  //HTMLに書き込み
+            };
+
+                
+        }; //CSV読み込み終了 
 
         //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         //   CSVの文字コードをUNICODEに変換する関数
