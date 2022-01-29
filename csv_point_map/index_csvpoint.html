@@ -68,8 +68,9 @@
             var bounds_group = new L.featureGroup([]);
             console.log(json01)
             for (i = 0; i < json01.length; i++) {
+                //ポップアップ時に表示する吹き出し（テーブル）の設定
                 var popupContent = '<table width="200">\
-                        <col width="100">\
+                        <col width="50">\
                         <col width="100">\
                         <tr>\
                             <th scope="row">市町村名</th>\

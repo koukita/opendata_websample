@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"></html>
 <body>
-    <title>緯度経度のあるCSVを地図にポイントで表示</title>
+    <title>北海道Society5.0事例集</title>
     <meta charset="utf-8">
     <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script> -->
@@ -18,15 +18,15 @@
         }
     </style>
 
-    緯度経度のあるCSVを地図にポイントで表示
+    北海道Society5.0事例集
     <div id="map_csv"></div>
 	<script>
         //=======================================================
         //緯度経度のあるCSVをポイントとして地図に表示
         //=======================================================
         //データCSVのURL
-        var csv01Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/hokkaido_yakuba.csv"
-        var csv02Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/hokkaido_yakuba.csv"
+        var csv01Url = "https://koukita.github.io/opendata_websample/Society5_Jirei_Map/data/society_jirei.csv"
+        var csv02Url = "https://koukita.github.io/opendata_websample/Society5_Jirei_Map/data/hokkaido_yakuba.csv"
 
         //CSVを読み込んで、文字コードを変換後Jsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         var req01 = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
@@ -45,58 +45,78 @@
             var csv_column = tmp[0].split(',');
             //UNICODEテキストからJSONを作成
             json01 = csvToJson(csv_unicodeStr01 , { header : 1, columnName : csv_column});
-        
-            //==================================================
-            //Leaflet地図を表示する
-            //==================================================
-
-            //地理院地図            
-            var m_Chiriin = new L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
-                attribution: "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>",
-                opacity: 1.0,
-                attribution: '地理院地図' });
-
-            var map = L.map('map_csv', {
-                zoomControl:true, maxZoom:18, minZoom:7,  //ズームコントロール、ズームレベル
-                center:[43.517,142.614],                 //初期表示の中心位置
-                zoom: 7,                                //初期表示のズームレベル
-                layers: [m_Chiriin],                                  
-            });
-            //アドレスにズームレベル、緯度経度を記入し、再度同じ表示をすることができる
-            var hash = new L.Hash(map);
-            //著作権表示
-            map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
-            var bounds_group = new L.featureGroup([]);
             console.log(json01)
-            for (i = 0; i < json01.length; i++) {
-                //地図上に表示するデータの設定
-                var marker = L.marker([(json01[i].緯度), (json01[i].経度)],{
-                    title:(json01[i].市町村名)
-                // //ポップアップの内容
-                }).bindPopup((json01[i].市町村名)).addTo(map);
-            };
 
-            //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-            //GeojsonとCSVの結合を行う関数
-            //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-            var joinCSV = function(dataMap, dataCSV) {
-                //結合データのJson（元CSV）を列「コード」でフィルタする
-                var jCSV = dataCSV.filter(function(item,index){
-                    if (item.Name == dataMap.properties.Name) return true;   //結合するキーフィールドをここで指定！
+            //====２つ目のCVSを読み込み　地図に表示=====================
+            var req02 = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
+            req02.open("get", csv02Url, true); // アクセスするファイルを指定
+            req02.responseType = 'arraybuffer'; //CSVをバイナリデータとして読み込み（重要）
+            req02.send(null); // HTTPリクエストの発行
+            var json02 = [];
+            // 非同期CSVのレスポンスが返ってきたら地図作成処理を行う
+            //文字コードを変換後にJsonに変換
+            req02.onload = function(){
+                //＝＝２つ目のCSVを文字コードの変換をしてからJsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+                //CSVファイルの文字コードを変換
+                var csv_unicodeStr02 = csv_unicode(req02.response) //UNICODEに変換する関数にデータを渡す
+                var tmp02 = csv_unicodeStr02.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
+                // カラム名の取得に使うために配列を作成する
+                var csv_column02 = tmp02[0].split(',');
+                //UNICODEテキストからJSONを作成
+                json02 = csvToJson(csv_unicodeStr02 , { header : 1, columnName : csv_column02});
+                console.log(json02)
+                //２つのCSV（Jsonに変換済み）をキーで結合し、結合したjsonを作る
+                const marge_json = json01.map(e => Object.assign(e, json02.find(f => f.コード == e.市町村コード)))
+                console.log(marge_json)
+
+                //==================================================
+                //Leaflet地図を表示する
+                //==================================================
+
+                //地理院地図            
+                var m_Chiriin = new L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+                    attribution: "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>",
+                    opacity: 1.0,
+                    attribution: '地理院地図' });
+
+                var map = L.map('map_csv', {
+                    zoomControl:true, maxZoom:18, minZoom:7,  //ズームコントロール、ズームレベル
+                    center:[43.517,142.614],                 //初期表示の中心位置
+                    zoom: 7,                                //初期表示のズームレベル
+                    layers: [m_Chiriin],                                  
                 });
-                if(jCSV[0] == undefined){
-                //CSVにデータがない場合はデータ追加しない
-                }else{
-                    var joinCsvKeys =Object.keys(jCSV[0]) //結合するCSVのデータを配列で取得
-                    //CSVデータをJsonに結合
-                    for ( var i = 0; i < joinCsvKeys.length ; i++ ){
-                        dataMap.properties[ joinCsvKeys[i] ] = jCSV[0][ joinCsvKeys[i] ]
-                    }
+                // アイコンサイズの設定など
+                var LeafIcon = L.Icon.extend({
+                    options: {
+                    // shadowUrl: 'icon/Shadow.png', // シャドウ付きアイコンを使う場合は、削除もしくはコメントアウト
+                    // shadowSize: [41, 41], // シャドウ付きアイコンを使う場合は、削除もしくはコメントアウト
+                    // shadowAnchor: [10, 41], // シャドウ付きアイコンを使う場合は、削除もしくはコメントアウト
+                    iconSize: [41, 41], // シャドウ付きアイコンを使う場合は、[41, 41]に設定
+                    iconAnchor: [10, 41],
+                    popupAnchor: [3, -40]
                 }
-                //console.log(dataMap)
-                return dataMap;
-            };  //＝＝CSV結合はここまで＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-                   
+                });
+                //アイコンの種類とURLを設定
+                var GreenIcon = new LeafIcon({iconUrl: 'https://koukita.github.io/opendata_websample/Society5_Jirei_Map/image/icon_green.png'});
+                var RedIcon = new LeafIcon({iconUrl: 'https://koukita.github.io/opendata_websample/Society5_Jirei_Map/image/icon_red.png'});
+                var OrangeIcon = new LeafIcon({iconUrl: 'https://koukita.github.io/opendata_websample/Society5_Jirei_Map/image/icon_oange.png'});
+                var BlueIcon = new LeafIcon({iconUrl: 'https://koukita.github.io/opendata_websample/Society5_Jirei_Map/image/icon_blue.png'});
+                
+                //アドレスにズームレベル、緯度経度を記入し、再度同じ表示をすることができる
+                var hash = new L.Hash(map);
+                //著作権表示
+                map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
+                var bounds_group = new L.featureGroup([]);
+                for (i = 0; i < marge_json.length; i++) {
+                    //地図上に表示するデータの設定
+                    var marker = L.marker([(marge_json[i].緯度), (marge_json[i].経度)],{
+                        icon: GreenIcon,title:(marge_json[i].市町村名)
+                    // //ポップアップの内容
+                    }).bindPopup((marge_json[i].市町村名)).addTo(map);
+                };
+                //=======================================地図表示はここまで==================
+            }; //========================================２つ目のCSV読み込みここまで=========
+
         }; //CSV読み込み終了    
         
 
@@ -154,14 +174,7 @@
                         } else {
                             row = null;
                         }
-                        //ヘッダーを設定  この変換はこのデータ用のカスタム
-                        d_heder = options.columnName[j]
-                        if(d_heder.match(/市町村/)){ //何故か市町村名のヘッダーに「"」が付くので、つかないように変換する
-                            data['市町村名'] = row;
-                        } else {
-                            data[d_heder] = row;  //市町村名以外はそのままのヘッダーを使用
-                        }
-                        //data[options.columnName[j]] = row;  //通常はこれ
+                        data[options.columnName[j]] = row;  //通常はこれ
                     }
                     json.push(data);  //１行づつjsonに追加
                 } else {
