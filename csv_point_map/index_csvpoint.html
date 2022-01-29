@@ -68,11 +68,23 @@
             var bounds_group = new L.featureGroup([]);
             console.log(json01)
             for (i = 0; i < json01.length; i++) {
+                var popupContent = '<table width="200">\
+                        <col width="100">\
+                        <col width="100">\
+                        <tr>\
+                            <th scope="row">市町村名</th>\
+                            <td>' + (json01[i].市町村名 !== null ? String(json01[i].市町村名) : '') + '</td>\
+                        </tr>\
+                        <tr>\
+                            <th scope="row">建物名</th>\
+                            <td>' + (json01[i].公共機関名 !== null ? String(json01[i].公共機関名) : '') + '</td>\
+                        </tr>\
+                    </table>'; 
                 //地図上に表示するデータの設定
                 var marker = L.marker([(json01[i].緯度), (json01[i].経度)],{
                     title:(json01[i].市町村名)
                 // //ポップアップの内容
-                }).bindPopup((json01[i].市町村名)).addTo(map);
+                }).bindPopup(popupContent).addTo(map);
             };        
         }; //CSV読み込み終了    
         

@@ -26,6 +26,7 @@
         //=======================================================
         //データCSVのURL
         var csv01Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/hokkaido_yakuba.csv"
+        var csv02Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/hokkaido_yakuba.csv"
 
         //CSVを読み込んで、文字コードを変換後Jsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         var req01 = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
@@ -73,7 +74,29 @@
                     title:(json01[i].市町村名)
                 // //ポップアップの内容
                 }).bindPopup((json01[i].市町村名)).addTo(map);
-            };        
+            };
+
+            //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+            //GeojsonとCSVの結合を行う関数
+            //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+            var joinCSV = function(dataMap, dataCSV) {
+                //結合データのJson（元CSV）を列「コード」でフィルタする
+                var jCSV = dataCSV.filter(function(item,index){
+                    if (item.Name == dataMap.properties.Name) return true;   //結合するキーフィールドをここで指定！
+                });
+                if(jCSV[0] == undefined){
+                //CSVにデータがない場合はデータ追加しない
+                }else{
+                    var joinCsvKeys =Object.keys(jCSV[0]) //結合するCSVのデータを配列で取得
+                    //CSVデータをJsonに結合
+                    for ( var i = 0; i < joinCsvKeys.length ; i++ ){
+                        dataMap.properties[ joinCsvKeys[i] ] = jCSV[0][ joinCsvKeys[i] ]
+                    }
+                }
+                //console.log(dataMap)
+                return dataMap;
+            };  //＝＝CSV結合はここまで＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+                   
         }; //CSV読み込み終了    
         
 
