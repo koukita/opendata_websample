@@ -6,6 +6,7 @@
     <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
 
     北海道Society5.0事例集　テーブルのサンプル
+    <div id="new_day"></div>
     <div id="map_csv"></div>
     <h2>暮らし</h2>
     <div id="table_kurashi"></div>
@@ -40,8 +41,7 @@
             var csv_column = tmp[0].split(',');
             //UNICODEテキストからJSONを作成
             json_jirei = csvToJson(csv_unicodeStr01 , { header : 1, columnName : csv_column});
-            test = '市町村'
-            console.log(json_jirei[1][test])
+            console.log(json_jirei)
 
             //テーブルを繰り返し作成する用の配列を作成
             var my_kubun = [['暮らし','table_kurashi'],['産業','table_sangyou'],['行政','table_gyousei'],['その他','table_sonota']]
@@ -70,7 +70,7 @@
                 tableStr= tableStr + '</tbody></table>'  //テーブルの終了タグ
                 document.getElementById(my_kubun[ku][1]).innerHTML = tableStr  //HTMLに書き込み
             };
-
+            document.getElementById('new_day').innerHTML = '更新日：' + json_jirei[0].更新日 ; //HTMLに書き込み
                 
         }; //CSV読み込み終了    
         
