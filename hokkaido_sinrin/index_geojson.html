@@ -4,23 +4,29 @@
     <head>
         <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/leaflet.css">
         <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/qgis2web.css">
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" /><!--現在地ボタンのアイコンを表示するのに必要-->
+        <link href="https://koukita.github.io/opendata/hodmap/css/L.Control.Locate.min.css" rel="stylesheet" /><!--現在地を表示するのに必要-->
         <style>
         #map {
           width: 100%;
-          height: 800px;
+          height: 700px;
           border: 1px solid #000000;
         }
         </style>
+        <title>北海道の国有林、道有林の位置図</title>
     </head>
     <body>
-        <div id="map"></div><!-- 地図表示エリア -->      
+        この地図は北海道の国有林、道有林の位置を表したものです。
+        <div id="map"></div><!-- 地図表示エリア -->
+        出典：国有林【<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A45.html">国土数値情報＞国有林野データ</a>】、   
+        道有林【<a href="https://www.pref.hokkaido.lg.jp/sr/dyr/DOP.html">道有林森林資源情報資料ダウンロードページ</a>】     
 
         <script src="https://koukita.github.io/opendata/hodmap/js/leaflet.js"></script>  <!--地図を表示するのに必要-->
         <script src="https://koukita.github.io/opendata/hodmap/js/leaflet.rotatedMarker.js"></script>  <!--地図を表示するのに必要-->
         <script src="https://koukita.github.io/opendata/hodmap/js/leaflet.pattern.js"></script>  <!--地図を表示するのに必要-->
         <script src="https://koukita.github.io/opendata/hodmap/js/leaflet-hash.js"></script>  <!--地図を表示するのに必要-->
         <script src="https://koukita.github.io/opendata/hodmap/js/jquery.min.js"></script> <!--$getJsonを実行するのに必要-->
-
+        <script src="https://koukita.github.io/opendata/hodmap/js/L.Control.Locate.min.js"></script><!--現在地を表示するのに必要-->
         <script>
 
           //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
@@ -204,7 +210,23 @@
                map.addLayer(layerHokkaidoMap);
                setBounds();
            });
+            // 現在地の表示　Locate
+            //参考にしたサイト：https://kita-note.com/leaflet-plugin-locatecontrol
+            var option = {
+                position: 'topright',
+                strings: {
+                    title: "現在地を表示",
+                    popup: "現在地"
+                },
+                locateOptions: {
+                    maxZoom: 13
+                }
+            }
 
+            var lc = L.control.locate(option).addTo(map);
+
+            // マップ表示時に現在地を取得
+            //lc.start();  
         //＝＝地図表示のプログラムはここまで＝＝＝＝＝＝＝＝＝＝＝＝＝
             
         </script>
