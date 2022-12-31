@@ -8,7 +8,7 @@
         <link href="https://koukita.github.io/opendata/hodmap/css/L.Control.Locate.min.css" rel="stylesheet" /><!--現在地を表示するのに必要-->
         <style>
         #map {
-          width: 100%;
+          width: 90%;
           height: 700px;
           border: 1px solid #000000;
         }
@@ -16,7 +16,11 @@
         <title>北海道の国有林、道有林の位置図</title>
     </head>
     <body>
-        この地図は北海道の国有林、道有林の位置を表したものです。
+        この地図は北海道の<b>
+        <font color="green">国有林</font>、
+        <font color="red">道有林</font>
+        </b>の位置を表したものです。<br>
+        地図の右上にあるポイントアイコンをクリックすると、現在位置を表示します。
         <div id="map"></div><!-- 地図表示エリア -->
         出典：国有林【<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A45.html">国土数値情報＞国有林野データ</a>】、   
         道有林【<a href="https://www.pref.hokkaido.lg.jp/sr/dyr/DOP.html">道有林森林資源情報資料ダウンロードページ</a>】<br>
@@ -84,7 +88,7 @@
                });
                //ポップアップテーブルを作成する
                if (feature.properties['森林室名'] !== undefined){
-                  var popupContent = '<table width="300">\
+                  var popupContent = '<b>道有林</b><table width="300">\
                       <col width="100">\
                       <col width="200">\
                         <tr>\
@@ -101,7 +105,7 @@
                         </tr>\
                     </table>';
                 } else if (feature.properties['森林管理署名'] !== undefined) {
-                  var popupContent = '<table width="300">\
+                  var popupContent = '<b>国有林</b><table width="300">\
                       <col width="100">\
                       <col width="200">\
                         <tr>\
