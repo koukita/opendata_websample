@@ -1,0 +1,202 @@
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/leaflet.css">
+        <link rel="stylesheet" href="https://koukita.github.io/opendata/hodmap/css/qgis2web.css">
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" /><!--現在地ボタンのアイコンを表示するのに必要-->
+        <link href="https://koukita.github.io/opendata/hodmap/css/L.Control.Locate.min.css" rel="stylesheet" /><!--現在地を表示するのに必要-->
+        <style>
+        #map {
+          width: 90%;
+          height: 700px;
+          border: 1px solid #000000;
+        }
+        </style>
+        <title>北海道の国有林、道有林の位置図（Vecter Tile）</title>
+    </head>
+    <body>
+        この地図は北海道の<b>
+        <font color="green">国有林</font>、
+        <font color="red">道有林</font>
+        </b>の位置を表したものです。<br>
+        地図の右上にあるポイントアイコンをクリックすると、現在位置を表示します。
+        <div id="map"></div><!-- 地図表示エリア -->
+        作成者：きた　こういち<br>
+        上記の国有林、道有林のGISデータをQGISで加工しました。<br>
+        データは<a href="https://github.com/koukita/opendata_websample/tree/main/hokkaido_sinrin/geojson">GitHub</a>に保存してあります。     
+
+        <script src="https://koukita.github.io/opendata/hodmap/js/leaflet.js"></script>  <!--地図を表示するのに必要-->
+        <script src="https://koukita.github.io/opendata/hodmap/js/leaflet.rotatedMarker.js"></script>  <!--地図を表示するのに必要-->
+        <script src="https://koukita.github.io/opendata/hodmap/js/leaflet.pattern.js"></script>  <!--地図を表示するのに必要-->
+        <script src="https://koukita.github.io/opendata/hodmap/js/leaflet-hash.js"></script>  <!--地図を表示するのに必要-->
+        <script src="https://koukita.github.io/opendata/hodmap/js/jquery.min.js"></script> <!--$getJsonを実行するのに必要-->
+        <script src="https://koukita.github.io/opendata/hodmap/js/L.Control.Locate.min.js"></script><!--現在地を表示するのに必要-->
+        <script src="https://koukita.github.io/opendata/hodmap/js/Leaflet.VectorGrid.bundled.min_v1.3.0.js"></script> <!--ベクタグリッドを表示するのに必要-->
+        <script>
+
+          //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+          //地図関係のプログラム
+          //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+          
+          //================================================
+          //地図の表示
+          //================================================
+          //地理院地図            
+          var m_Chiriin = new L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+              attribution: "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>",
+              opacity: 1.0,
+              attribution: '地理院地図' });
+
+          var map = L.map('map', {
+               zoomControl:true, maxZoom:16, minZoom:6,  //ズームコントロール、ズームレベル
+               center:[43.517,142.614],                 //初期表示の中心位置
+               zoom: 7,                                  //初期表示のズームレベル
+               layers: [m_Chiriin]
+           });
+           map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
+           
+            // 現在地の表示　Locate
+            //参考にしたサイト：https://kita-note.com/leaflet-plugin-locatecontrol
+            var option = {
+                position: 'topright',
+                strings: {
+                    title: "現在地を表示",
+                    popup: "現在地"
+                },
+                locateOptions: {
+                    maxZoom: 13
+                }
+            }
+
+            var lc = L.control.locate(option).addTo(map);
+
+            // マップ表示時に現在地を取得
+            //lc.start();  
+
+            //＝＝＝＝スタイルをクリアするための関数＝＝＝＝
+            var highlight_dou;
+            var highlight_koku;
+            var clearHighlight01 = function() {
+                if (highlight_dou) {
+                    vectorGrid.resetFeatureStyle(highlight_dou);
+                }
+                highlight_dou = null;
+                if (highlight_koku) {
+                    vectorGrid.resetFeatureStyle(highlight_koku);
+                }
+                highlight_koku = null;
+            };
+
+            //＝＝＝＝＝＝＝ベクタタイルを地図に表示する＝＝＝＝＝＝＝＝
+            //道有林
+            var vectorGrid_dou = L.vectorGrid.protobuf("https://koukita.github.io/opendata_websample/hokkaido_sinrin/vectertile/doyurin/{z}/{x}/{y}.pbf", {
+                attribution: "<a href='https://www.pref.hokkaido.lg.jp/sr/dyr/DOP.html' target='_blank'>道有林森林資源情報資料</a>",
+                maxNativeZoom: 16,
+                minNativeZoom: 10,
+                //minZoom: 12,
+                rendererFactory: L.canvas.tile,
+                vectorTileLayerStyles: {
+                    "道有林の範囲":{
+                        fillColor:'#ff0000',  //赤
+                        fillOpacity: 0.5, //透過率
+                        stroke: true,
+                        fill: true,
+                        color: 'black',
+                        weight: 2
+                    } 
+                },
+                interactive: true,
+	        		getFeatureId: function(f) {
+			    	return f.properties.森林室名; //一意のIDを指定
+			    }
+            })
+            .on('click', function(e) {
+                var properties = e.layer.properties;
+                var popupContent = '<b>道有林</b><table width="300">\
+                        <col width="100">\
+                        <col width="200">\
+                        <tr>\
+                            <th scope="row">森林室名</th>\
+                            <td>' + String(properties.森林室名) + '</td>\
+                        </tr>\
+                        <tr>\
+                            <th scope="row">住所</th>\
+                            <td>' + String(properties.住所) + '</td>\
+                        </tr>\
+                        <tr>\
+                            <th scope="row">電話番号</th>\
+                            <td><a href="tel:"' + String(properties.電話) + '"">' + String(properties.電話) + '</a></td>\
+                        </tr>\
+                    </table>';
+                L.popup()
+                    .setContent(popupContent)
+                    .setLatLng(e.latlng)
+                    .openOn(map);
+
+                clearHighlight(); //一度スタイルをクリア（表示済みのポップアップを削除）
+                highlight_dou = properties.森林室名;
+		    })            
+            // .addTo(map);
+            map.addLayer(vectorGrid_dou);
+
+            //国有林
+            var vectorGrid_koku = L.vectorGrid.protobuf("https://koukita.github.io/opendata_websample/hokkaido_sinrin/vectertile/kokuyurin/{z}/{x}/{y}.pbf", {
+                attribution: "<a href='https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A45.html' target='_blank'>国土数値情報＞国有林野データ</a>",
+                maxNativeZoom: 16,
+                minNativeZoom: 10,
+                //minZoom: 12,
+                rendererFactory: L.canvas.tile,
+                vectorTileLayerStyles: {
+                    "北海道森林管理署範囲":{
+                        fillColor:'#00ff00',  //緑
+                        fillOpacity: 0.5, //透過率
+                        stroke: true,
+                        fill: true,
+                        color: 'black',
+                        weight: 2
+                    } 
+                },
+                interactive: true,
+	        		getFeatureId: function(f) {
+			    	return f.properties.森林管理署; //一意のIDを指定
+			    }
+            })
+            .on('click', function(e) {
+                var properties = e.layer.properties;
+                var popupContent = '<b>国有林</b><table width="300">\
+                      <col width="100">\
+                      <col width="200">\
+                        <tr>\
+                            <th scope="row">森林管理署名</th>\
+                            <td>' + String(properties.森林管理署名) + '</td>\
+                        </tr>\
+                        <tr>\
+                            <th scope="row">住所</th>\
+                            <td>' + String(properties.住所) + '</td>\
+                        </tr>\
+                        <tr>\
+                            <th scope="row">代表電話(IP)</th>\
+                            <td><a href="tel:"' + String(properties.代表IP電話) + '"">' + String(properties.代表IP電話) + '</a></td>\
+                        </tr>\
+                        <tr>\
+                            <th scope="row">代表電話(NTT)</th>\
+                            <td><a href="tel:"' + String(properties.代表電話) + '"">' + String(properties.代表電話) + '</a></td>\
+                        </tr>\
+                    </table>';
+                L.popup()
+                    .setContent(popupContent)
+                    .setLatLng(e.latlng)
+                    .openOn(map);
+
+                clearHighlight(); //一度スタイルをクリア（表示済みのポップアップを削除）
+                highlight_koku = properties.森林管理署;
+            })            
+            // .addTo(map);
+            map.addLayer(vectorGrid_koku);
+
+        //＝＝地図表示のプログラムはここまで＝＝＝＝＝＝＝＝＝＝＝＝＝
+            
+        </script>
+    </body>
+</html>
