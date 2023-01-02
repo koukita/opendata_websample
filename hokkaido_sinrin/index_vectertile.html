@@ -49,9 +49,9 @@
               attribution: '地理院地図' });
 
           var map = L.map('map', {
-               zoomControl:true, maxZoom:16, minZoom:6,  //ズームコントロール、ズームレベル
+               zoomControl:true, maxZoom:16, minZoom:7,  //ズームコントロール、ズームレベル
                center:[43.517,142.614],                 //初期表示の中心位置
-               zoom: 7,                                  //初期表示のズームレベル
+               zoom: 9,                                  //初期表示のズームレベル
                layers: [m_Chiriin]
            });
            map.attributionControl.setPrefix(' <a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
@@ -88,7 +88,7 @@
             var vectorGrid = L.vectorGrid.protobuf("https://koukita.github.io/opendata_websample/hokkaido_sinrin/vectertile/hokkaido_sinrin/{z}/{x}/{y}.pbf", {
                 attribution: "<a href='https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A45.html' target='_blank'>国土数値情報＞国有林野データ</a>"
                     + "<a href='https://www.pref.hokkaido.lg.jp/sr/dyr/DOP.html' target='_blank'>道有林森林資源情報資料</a>",
-                maxNativeZoom: 14,
+                maxNativeZoom: 15,
                 minNativeZoom: 11,
                 rendererFactory: L.canvas.tile,
                 vectorTileLayerStyles: {
