@@ -16,3 +16,13 @@ https://koukita.github.io/opendata_websample/csv_cluster_map/index_csv_cluster.h
 データの内容によって、ポイントマーカーの種類を変更する。
 重なるマーカーはクラスタリングする。
 https://koukita.github.io/opendata_websample/Society5_Jirei_Map/index_society.html
+  
+## GeojsonをLeafletで表示するサンプル
+ポリゴンのGeojsonファイルをLeafletで表示するサンプル。
+サンプルは北海道の森林データ。
+https://koukita.github.io/opendata_websample/hokkaido_sinrin/index_geojson.html
+  
+## ベクタタイルをLeafletで表示するサンプル
+ポリゴンのベクタタイルをLeafletで表示するサンプル。
+サンプルは北海道の森林データ。
+https://koukita.github.io/opendata_websample/hokkaido_sinrin/index_vectertile.html
