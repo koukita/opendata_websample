@@ -117,45 +117,31 @@
             })
             .on('click', function(e) {
                 var properties = e.layer.properties;
-                if (properties.森林室名 !== undefined){
-                    var popupContent = '<b>道有林</b><table width="300">\
-                        <col width="100">\
-                        <col width="200">\
-                        <tr>\
-                            <th scope="row">森林室名</th>\
-                            <td>' + String(properties.森林室名) + '</td>\
-                        </tr>\
-                        <tr>\
-                            <th scope="row">住所</th>\
-                            <td>' + String(properties.住所) + '</td>\
-                        </tr>\
-                        <tr>\
-                            <th scope="row">電話番号</th>\
-                            <td><a href="tel:"' + String(properties.電話) + '"">' + String(properties.電話) + '</a></td>\
-                        </tr>\
+                var popupContent = '<table width="300">\
+                    <col width="100">\
+                    <col width="200">\
+                    <tr>\
+                        <th scope="row">森林種別</th>\
+                        <td>' + String(properties.種別) + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">名称</th>\
+                        <td>' + String(properties.名称) + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">住所</th>\
+                        <td>' + String(properties.住所) + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">代表電話</th>\
+                        <td><a href="tel:"' + String(properties.代表電話) + '"">' + String(properties.代表電話) + '</a></td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">代表IP電話</th>\
+                        <td><a href="tel:"' + String(properties.代表IP電話) + '"">' + String(properties.代表IP電話) + '</a></td>\
+                    </tr>\
                     </table>';
-                } else {
-                  var popupContent = '<b>国有林</b><table width="300">\
-                      <col width="100">\
-                      <col width="200">\
-                        <tr>\
-                            <th scope="row">森林管理署名</th>\
-                            <td>' + String(properties.森林管理署名) + '</td>\
-                        </tr>\
-                        <tr>\
-                            <th scope="row">住所</th>\
-                            <td>' + String(properties.住所) + '</td>\
-                        </tr>\
-                        <tr>\
-                            <th scope="row">代表電話(IP)</th>\
-                            <td><a href="tel:"' + String(properties.代表IP電話) + '"">' + String(properties.代表IP電話) + '</a></td>\
-                        </tr>\
-                        <tr>\
-                            <th scope="row">代表電話(NTT)</th>\
-                            <td><a href="tel:"' + String(properties.代表電話) + '"">' + String(properties.代表電話) + '</a></td>\
-                        </tr>\
-                    </table>';
-                }
+
                 // console.log(popupContent)
                 L.popup()
                     .setContent(popupContent)
