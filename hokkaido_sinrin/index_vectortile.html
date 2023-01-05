@@ -88,7 +88,7 @@
             var vectorGrid = L.vectorGrid.protobuf("https://koukita.github.io/opendata_websample/hokkaido_sinrin/vectortile/hokkaido_sinrin/{z}/{x}/{y}.pbf", {
                 attribution: "<a href='https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A45.html' target='_blank'>国土数値情報＞国有林野データ</a>"
                     + "、<a href='https://www.pref.hokkaido.lg.jp/sr/dyr/DOP.html' target='_blank'>道有林森林資源情報資料</a>",
-                maxNativeZoom: 10,
+                maxNativeZoom: 15,
                 minNativeZoom: 9,
                 rendererFactory: L.canvas.tile,
                 vectorTileLayerStyles: {
@@ -117,6 +117,14 @@
             })
             .on('click', function(e) {
                 var properties = e.layer.properties;
+                if(properties.代表IP電話 !== undefined){
+                    var iptel = '<tr>\
+                        <th scope="row">代表IP電話</th>\
+                        <td><a href="tel:"' + String(properties.代表IP電話) + '"">' + String(properties.代表IP電話) + '</a></td>\
+                        </tr>';
+                }else{
+                    var iptel = '';
+                }
                 var popupContent = '<table width="300">\
                     <col width="100">\
                     <col width="200">\
@@ -135,10 +143,10 @@
                     <tr>\
                         <th scope="row">代表電話</th>\
                         <td><a href="tel:"' + String(properties.代表電話) + '"">' + String(properties.代表電話) + '</a></td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">代表IP電話</th>\
-                        <td><a href="tel:"' + String(properties.代表IP電話) + '"">' + String(properties.代表IP電話) + '</a></td>\
+                    </tr>' + iptel +
+                    '<tr>\
+                        <th scope="row">林班</th>\
+                        <td>' + String(properties.林班) + '</td>\
                     </tr>\
                     </table>';
 
