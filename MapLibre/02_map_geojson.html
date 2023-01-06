@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <meta charset="utf-8" />
+    <title>【MapLibre GL JS】背景地図の表示</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <script src="https://koukita.github.io/opendata_websample/Library/maplibre/240/maplibre-gl.js"></script>
+    <link href="https://koukita.github.io/opendata_websample/Library/maplibre/240/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    </style>
+
+    <div id="map"></div>
+    <script>
+        var map = new maplibregl.Map({
+            container: 'map', // container id
+            //地理院地図の表示
+            //参考にしたサイト（https://day-journal.com/memo/maplibregljs-005/）
+            style: {
+                version: 8,
+                sources: {
+                    t_pale: {
+                        type: 'raster',
+                        tiles: ['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],
+                        tileSize: 256,
+                        attribution:
+                            '<a href="http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html" target="_blank">地理院タイル</a>',
+                    },
+                },
+                layers: [
+                    {
+                        id: 't_pale',
+                        type: 'raster',
+                        source: 't_pale',
+                        minzoom: 0,
+                        maxzoom: 18,
+                    },
+                ],
+            },        
+            center: [142.569580, 43.424999], // starting position [lng, lat]
+            zoom: 7, // starting zoom
+        });
+
+        map.on('load',function(){
+            map.addSource('doyurin',{
+                type:'geojson',
+                data:'https://koukita.github.io/opendata_websample/hokkaido_sinrin/geojson/hokkaido_doyurin_Area_4612.geojson'
+            });
+            map.addLayer({
+                'id': 'doyurin',
+                'type': 'fill',
+                'source': 'doyurin',
+                'layout': {},
+                'paint': {
+                    'fill-outline-color': '#0000FF',
+                    'fill-outline-width': 3,
+                    'fill-color': '#E92D63',
+                    'fill-opacity': 0.7
+                }
+            });
+        });
+
+        //UI
+        map.addControl(new maplibregl.NavigationControl(), 'bottom-right');  //ズームコントロール
+        map.addControl(new maplibregl.GeolocateControl({positionOptions: {enableHighAccuracy: true},trackUserLocation: true}), 'top-right');  //現在地の表示
+        map.addControl(new maplibregl.ScaleControl() );  //スケールバー
+        //map.addControl(new maplibregl.AttributionControl({customAttribution: "custom attribution" })); // you can add
+
+        //debug
+        //map.showTileBoundaries = true;
+        //map.showCollisionBoxes = true;
+
+
+    </script>
+
+</body>
+</html>
