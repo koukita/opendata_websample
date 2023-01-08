@@ -9,11 +9,24 @@
     <script src="https://koukita.github.io/opendata_websample/Library/maplibre/2.4.0/maplibre-gl.js"></script>
     <link href="https://koukita.github.io/opendata_websample/Library/maplibre/2.4.0/maplibre-gl.css" rel="stylesheet" />
     <style>
-        body { margin: 0; padding: 0; }
-        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        #map {
+          width: 90%;
+          height: 700px;
+          border: 1px solid #000000;
+        }
     </style>
 
-    <div id="map"></div>
+    この地図は北海道の<b>
+    <font color="green">国有林</font>、
+    <font color="red">道有林</font>
+    </b>の位置を表したものです。（区域の表示には少し時間がかかります）<br>
+    地図の右上にあるポイントアイコンをクリックすると、現在位置を表示します。
+    <div id="map"></div><!-- 地図表示エリア -->
+    出典：国有林【<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A45.html">国土数値情報＞国有林野データ</a>】、   
+    道有林【<a href="https://www.pref.hokkaido.lg.jp/sr/dyr/DOP.html">道有林森林資源情報資料ダウンロードページ</a>】<br>
+    作成者：きた　こういち<br>
+    上記の国有林、道有林のGISデータをQGISで加工しました。<br>
+    データは<a href="https://github.com/koukita/opendata_websample/tree/main/hokkaido_sinrin/geojson">GitHub</a>に保存してあります。     
     <script>
         var map = new maplibregl.Map({
             container: 'map', // container id
@@ -54,17 +67,31 @@
                 type:'geojson',
                 data:'https://koukita.github.io/opendata_websample/hokkaido_sinrin/geojson/hokkaido_kokuyurin_Area_4612.geojson'
             });
+
+            //塗りつぶし
             map.addLayer({
                 'id': 'doyurin_fill', //ダブらない任意の名称
                 'type': 'fill',
                 'source': 'doyurin',  //上の「addSource」で指定した名称
                 'layout': {},
                 'paint': {
-                    'fill-color': '#E92D63',
+                    'fill-color': '#ff4500',
                     'fill-opacity': 0.7,
                     //'fill-outline-color': '#000FFF',  //太さは設定できない？
                 }
             });
+            map.addLayer({
+                'id': 'kokuyurin_fill', //ダブらない任意の名称
+                'type': 'fill',
+                'source': 'kokuyurin',  //上の「addSource」で指定した名称
+                'layout': {},
+                'paint': {
+                    'fill-color': '#008000',
+                    'fill-opacity': 0.7,
+                    //'fill-outline-color': '#000FFF',  //太さは設定できない？
+                }
+            });
+
             //ポリゴンの枠線を表示
             map.addLayer({
                 'id': 'doyurin_line', //ダブらない任意の名称
@@ -73,9 +100,22 @@
                 'layout': {},
                 'paint': {
                     'line-color': '#000000',
-                    'line-width': 3,
+                    'line-width': 2,
                 }
             });
+
+            map.addLayer({
+                'id': 'kokuyurin_line', //ダブらない任意の名称
+                'type': 'line',
+                'source': 'kokuyurin',  //上の「addSource」で指定した名称
+                'layout': {},
+                'paint': {
+                    'line-color': '#000000',
+                    'line-width': 2,
+                }
+            });
+
+            //ラベルの設定
             map.addLayer({
                 'id': 'doyurin_label', //ダブらない任意の名称
                 'type': 'symbol',
@@ -97,9 +137,94 @@
                 }
 
             });
+            map.addLayer({
+                'id': 'kokuyurin_label', //ダブらない任意の名称
+                'type': 'symbol',
+                'source': 'kokuyurin',  //上の「addSource」で指定した名称
+                'minzoom': 10,
+                'layout': {
+                    'text-field': ['get', '森林管理署名'],
+                    'text-variable-anchor': ['center'],
+                    'text-radial-offset': 0,
+                    'text-padding': 50, //テキストから指定したピクセル値の範囲にあるラベルを表示しない
+                    'text-justify': 'auto',
+                    'text-size':12,
+                    //'icon-image': "circle_8"
+                },
+                'paint': {
+                    'text-color': '#006400',  //文字の色
+                    'text-halo-color': 'rgb(255, 255, 255)', //文字の縁取り色
+                    'text-halo-width': 2,  //文字の縁取り幅
+                }
 
+            });
         });
-
+        // 地図上でクリックしたときの処理
+        //参考にしたサイト（http://taustation.com/maplibre-popup/）
+        map.on('click', (evt) => {
+            // クリック位置の経緯度
+            let lng = evt.lngLat.lng;
+            let lat = evt.lngLat.lat;
+    
+            // クリック位置のFeature群を取得／レイヤーを限定している
+            let features = map.queryRenderedFeatures(evt.point, {layers: ['doyurin_fill','kokuyurin_fill']});
+            // 取得したFeature群の属性等をコンソールに表示する
+            features.forEach((feature) => {
+                if (typeof feature !== 'undefined') {
+                    //ポップアップのテーブルをリストから作成する
+                    var popupitem = "";
+                    //ポップアップ時に表示する吹き出し（テーブル）の設定
+                    if (feature.properties['森林室名'] !== undefined){
+                        var popupContent = '<b>道有林</b><table width="300">\
+                            <col width="100">\
+                            <col width="200">\
+                                <tr>\
+                                    <th scope="row">森林室名</th>\
+                                    <td>' + String(feature.properties['森林室名']) + '</td>\
+                                </tr>\
+                                <tr>\
+                                    <th scope="row">住所</th>\
+                                    <td>' + String(feature.properties['住所']) + '</td>\
+                                </tr>\
+                                <tr>\
+                                    <th scope="row">電話番号</th>\
+                                    <td><a href="tel:"' + String(feature.properties['電話']) + '"">' + String(feature.properties['電話']) + '</a></td>\
+                                </tr>\
+                            </table>';
+                        } else if (feature.properties['森林管理署名'] !== undefined) {
+                        var popupContent = '<b>国有林</b><table width="300">\
+                            <col width="100">\
+                            <col width="200">\
+                                <tr>\
+                                    <th scope="row">森林管理署名</th>\
+                                    <td>' + String(feature.properties['森林管理署名']) + '</td>\
+                                </tr>\
+                                <tr>\
+                                    <th scope="row">住所</th>\
+                                    <td>' + String(feature.properties['住所']) + '</td>\
+                                </tr>\
+                                <tr>\
+                                    <th scope="row">代表電話(IP)</th>\
+                                    <td><a href="tel:"' + String(feature.properties['代表IP電話']) + '"">' + String(feature.properties['代表IP電話']) + '</a></td>\
+                                </tr>\
+                                <tr>\
+                                    <th scope="row">代表電話(NTT)</th>\
+                                    <td><a href="tel:"' + String(feature.properties['代表電話']) + '"">' + String(feature.properties['代表電話']) + '</a></td>\
+                                </tr>\
+                            </table>';
+                    
+                        }                    
+                    let popup = new maplibregl.Popup({
+                        closeOnClick: true,
+                        className: 'popup'
+                    })
+                    .setLngLat([lng, lat])
+                    .setHTML(popupContent)
+                    .setMaxWidth("500px")
+                    .addTo(map);
+                }
+            });
+        });
 
 
         //UI
