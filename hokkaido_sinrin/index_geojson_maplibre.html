@@ -41,7 +41,8 @@
                         tiles: ['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],
                         tileSize: 256,
                         attribution:
-                            '<a href="http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html" target="_blank">地理院タイル</a>',
+                            '<a href="https://maplibre.org/maplibre-gl-js-docs/api/" target="_blank">MapLibre GL JS</a>｜\
+                            <a href="http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html" target="_blank">地理院タイル</a><br>',
                     },
                 },
                 layers: [
@@ -228,8 +229,8 @@
 
 
         //UI
-        map.addControl(new maplibregl.NavigationControl(), 'bottom-right');  //ズームコントロール
-        map.addControl(new maplibregl.GeolocateControl({positionOptions: {enableHighAccuracy: true},trackUserLocation: true}), 'top-right');  //現在地の表示
+        map.addControl(new maplibregl.NavigationControl(), 'top-left');  //ズームコントロール
+        map.addControl(new maplibregl.GeolocateControl({positionOptions: {enableHighAccuracy: true},trackUserLocation: true}), 'top-left');  //現在地の表示
         map.addControl(new maplibregl.ScaleControl() );  //スケールバー
         //map.addControl(new maplibregl.AttributionControl({customAttribution: "custom attribution" })); // you can add
 
