@@ -16,11 +16,12 @@ MapLibre GL JS #012 - 外部ファイルのGeoJSON表示（https://day-journal.c
 MapLibreで地理院地図Vector（仮称）を表示するページを作る（入門者向け）（https://qiita.com/T-ubu/items/59ce878b2b19d5bad141）
 
 ## ポリゴンのスタイル
-MapLibre – 多角形を描く（http://taustation.com/maplibre-draw-polygon/）
+MapLibre – 多角形を描く（http://taustation.com/maplibre-draw-polygon/）  
 【MapLibre GL JS】ポリゴンデータを表示する（https://qiita.com/asahina820/items/4fe5d4dbce28276d3474）  
 ※Mouseホバーでの説明もあり
 
 ## 属性のポップアップ
-Display a popup（https://maplibre.org/maplibre-gl-js-docs/example/popup/）
+Display a popup（https://maplibre.org/maplibre-gl-js-docs/example/popup/）  
 MapLibre – Popup（http://taustation.com/maplibre-popup/）
 
+## ポイントの表示

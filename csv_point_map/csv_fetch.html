@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"></html>
+<body>
+    <title>CSVファイルをfetchで処理</title>
+    <meta charset="utf-8">
+    <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
+    CSVを処理
+	<script>
+        //=======================================================
+        //緯度経度のあるCSVをポイントとして地図に表示
+        //=======================================================
+        //データCSVのURL
+        var csv01Url = "https://koukita.github.io/opendata_websample/csv_point_map/data/hokkaido_yakuba.csv"
+
+        //=======================================================
+        //CSVファイルの読み込み
+        //=======================================================
+        //参考にしたサイト：https://gray-code.com/javascript/load-file-with-fetch-api/
+        fetch(csv01Url) // (1) リクエスト送信
+            .then(response => response.arrayBuffer()) // (2) レスポンスデータを取得
+            .then(data => { // (3)レスポンスデータを処理
+                var csv_unicodeStr01 = csv_unicode(data) //UNICODEに変換する関数にデータを渡す
+                var new_csv = csvToArray(csv_unicodeStr01) //セル内改行があるCSVを修正して配列を作成
+                var json01 = csvToJson(new_csv) //CSVからJsonを作成
+                console.log(json01)
+            });        
+
+
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //   CSVの文字コードをUNICODEに変換する関数
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        var csv_unicode = function(sjisStr) {
+            //UNICODEに文字コード変換したCSVを作成
+            if (sjisStr){
+                var sjisArray = new Uint8Array(sjisStr)  //文字コードで配列を作成
+                var detectedEncoding = Encoding.detect(sjisArray); //文字コードを判別して、処理を分岐
+                console.log('文字コードは' + detectedEncoding);
+                switch (detectedEncoding){
+                    case 'UNICODE':
+                        var fromEncoding = 'SJIS';  //UNICODEの場合はSJISに変換
+                        break;
+                    case 'UTF8':
+                        var fromEncoding = 'UTF8';
+                        break;                    
+                    case 'SJIS':
+                        var fromEncoding = 'SJIS';
+                        break;
+                    default:
+                        var fromEncoding = 'AUTO';                    
+                };
+                var unicodeArray = Encoding.convert(sjisArray,{ //encoding.jsでSJISをUNIDODEに変換
+                    to: 'UNICODE',
+                    from: fromEncoding  //文字コードの判定は自動
+                });
+                var unicodeStr = Encoding.codeToString(unicodeArray); //UNICODEのテキストデータ
+                unicodeStr = unicodeStr.replace(/\r/g, '') //Excel特有の改行コード「\r」を削除
+            }
+            return unicodeStr;
+        }; //＝＝＝ここまで＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //   セル内改行のCSVを修正する関数（参考：https://qiita.com/momosetkn/items/869aa22ab10f0ec5a529）
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        function csvToArray(csvString) {
+            var separator = '\t';
+            var columnSize = csvString.split(/\r\n|\r|\n/)[0].split(separator).length;
+            var chars = Array.from(csvString.replace(/\r\n|\r|\n/g, '\n'));
+            var csvList = [];
+            var list = [];
+            var queteOpenFlg = false;
+            var buf = "";
+            for (var i = 0; i < chars.length; i++) {
+                if (chars[i] == '"') {
+                queteOpenFlg = queteOpenFlg == false;
+                } else {
+                if ((chars[i] == separator || chars[i] == '\n') && !queteOpenFlg) {
+                    //データ一つのリストになっていたため、カンマ区切りでデータを取得するように変更
+                    listData = buf.split(',');  //カンマ「,」区切りで配列に値を代入
+                    buf = "";
+                    csvList.push(listData); //カンマ区切りのリストをcsvの行として追加
+                } else {
+                    buf += chars[i];
+                }
+                }
+            }
+            var csv = {};
+            csv.dataList = [];
+            for (var i = 0; i < csvList.length; i++) {
+                if (i == 0) {
+                csv.header = csvList[i];  //1行目をヘッダーにする
+                } else {
+                csv.dataList.push(csvList[i]);  //2行目以降はdataListに入れる
+                }
+            }
+            return csv;
+        };
+
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //   CSVをJsonに変換する関数(csvtoArrayで配列に変換されている場合)
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        function csvToJson(csv2array) {
+            var rows = csv2array.dataList
+            // console.log(rows)
+            var json = [], line = [], row = '', data = {};
+            var i, len, j, len2;
+            //１行ずつデータを分割し、Json形式に変換
+            for (i = 0, len = rows.length; i < len; i++) {
+                if (csv2array.header.length > 0) {  //ヘッダーの要素数が0か確認
+                    data = {};
+                    for (j = 0, len2 = rows[i].length; j < len2; j++) {  //各行の要素数分繰り返し
+                        if (typeof rows[i][j] !== 'undefined') {  //データに型が定義されているか確認
+                            rowData = rows[i][j];  //要素一つを代入
+                            rowData = rowData.replace(/^"(.+)?"$/, '$1'); //不要な「”」文字を変換
+                        } else {
+                            //型が定義されていない場合は「NULL」を代入
+                            rowData = null;
+                        }
+                        data[csv2array.header[j]] = rowData;  //通常はこれ
+                    }
+                    json.push(data);  //１行づつjsonに追加
+                } else {
+                    //ヘッダーの要素が0なら、列名無しでjsonに追加
+                    json.push(rows[i]);
+                }
+            }
+        
+            return json;
+        }
+    </script>
+</body>
+</html>

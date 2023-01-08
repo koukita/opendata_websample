@@ -38,8 +38,10 @@
         req01.onload = function(){
             //＝＝１つ目のCSVを文字コードの変換をしてからJsonに変換＝＝＝＝＝＝＝＝＝＝＝＝＝＝
             //CSVファイルの文字コードを変換
+            console.log(req01.response)
             var csv_unicodeStr01 = csv_unicode(req01.response) //UNICODEに変換する関数にデータを渡す
             var tmp = csv_unicodeStr01.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
+            console.log(tmp)
             // カラム名の取得に使うために配列を作成する
             var csv_column = tmp[0].split(',');
             //UNICODEテキストからJSONを作成
