@@ -45,14 +45,14 @@
         });
 
         map.on('load',function(){
-            map.addSource('doyurin',{
+            map.addSource('d_source',{
                 type:'geojson',
-                data:'https://koukita.github.io/opendata_websample/hokkaido_sinrin/geojson/hokkaido_doyurin_Area_4612.geojson'
+                data:'https://koukita.github.io/opendata_websample/hokkaido_sinrin/geojson/hokkaido_kokuyurin_rinhan_4612.geojson'
             });
             map.addLayer({
-                'id': 'doyurin_fill', //ダブらない任意の名称
+                'id': 'd_source_fill', //ダブらない任意の名称
                 'type': 'fill',
-                'source': 'doyurin',  //上の「addSource」で指定した名称
+                'source': 'd_source',  //上の「addSource」で指定した名称
                 'layout': {},
                 'paint': {
                     'fill-color': '#E92D63',
@@ -62,9 +62,9 @@
             });
             //ポリゴンの枠線を表示
             map.addLayer({
-                'id': 'doyurin_line', //ダブらない任意の名称
+                'id': 'd_source_line', //ダブらない任意の名称
                 'type': 'line',
-                'source': 'doyurin',  //上の「addSource」で指定した名称
+                'source': 'd_source',  //上の「addSource」で指定した名称
                 'layout': {},
                 'paint': {
                     'line-color': '#000000',

@@ -78,7 +78,7 @@
                 'source': 'd_source',  //上の「addSource」で指定した名称
                 'minzoom': 10,
                 'layout': {
-                    'text-field': ['get', '署名称'],
+                    'text-field': ['get', '林班'],
                     'text-variable-anchor': ['center'],
                     'text-radial-offset': 0,
                     // 'text-padding': 50, //テキストから指定したピクセル値の範囲にあるラベルを表示しない
@@ -96,7 +96,40 @@
 
         });
 
-
+        // 地図上でクリックしたときの処理
+        //参考にしたサイト（http://taustation.com/maplibre-popup/）
+        map.on('click', (evt) => {
+            // クリック位置の経緯度
+            let lng = evt.lngLat.lng;
+            let lat = evt.lngLat.lat;
+    
+            // クリック位置のFeature群を取得／レイヤーを限定している
+            let features = map.queryRenderedFeatures(evt.point, {layers: ['d_source_fill']});
+            // 取得したFeature群の属性等をコンソールに表示する
+            features.forEach((feature) => {
+                //ポップアップ時に表示する吹き出し（テーブル）の設定
+                var popupContent = '<b>森林</b><table width="300">\
+                    <col width="100">\
+                    <col width="200">\
+                        <tr>\
+                            <th scope="row">名称</th>\
+                            <td>' + String(feature.properties['名称']) + '</td>\
+                        </tr>\
+                        <tr>\
+                            <th scope="row">林班</th>\
+                            <td>' + String(feature.properties['林班']) + '</td>\
+                        </tr>\
+                    </table>'; 
+                let popup = new maplibregl.Popup({
+                    closeOnClick: true,
+                    className: 'popup'
+                })
+                .setLngLat([lng, lat])
+                .setHTML(popupContent)
+                .setMaxWidth("300px")
+                .addTo(map);
+            });
+        });
 
         //UI
         map.addControl(new maplibregl.NavigationControl(), 'bottom-right');  //ズームコントロール

@@ -8,8 +8,8 @@
     <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
     <style type="text/css">/* 地図の大きさを指定 */
         #map_csv{
-            width: 100%;
-            height: 700px;
+            width: 90%;
+            height: 500px;
         }
         /* モバイル対応 幅が700px以下の場合は幅を調整 */
         @media screen and (max-width: 700px) {   /* スクリーンが700px以下ならこの設定で地図を表示 */
@@ -65,15 +65,15 @@
 
         //＝＝＝地図の設定＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         //緯度、経度の列名
-        var lat = '緯度'
-        var lon = '経度'
+        var lat = '緯度'   //緯度を指定
+        var lon = '経度'   //経度を指定
 
         //地図の初期表示位置（緯度経度で指定）※地理院地図（https://maps.gsi.go.jp/）からコピーできます
-        var mapCenter = [43.517,142.614]
-        //※参考：北海道の中心[43.517,142.614]
+        var mapCenter = [142.614,43.517]    //[経度,緯度]で指定
+        //※参考：北海道の中心[142.614,43.517]
 
         //始めに表示するズームレベル
-        var defZoomLevel = 5
+        var defZoomLevel = 6
 
         //ポイントのスタイル設定（円）
         var circle_fillColor = '#0000ff'   //塗りつぶし色      赤＝#FF0000　青＝#0000ff　緑＝#008000　黄色＝#ffff00　黒＝#000000　白＝#ffffff
@@ -129,7 +129,7 @@
                                 tiles: ['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],  //地理院淡色地図
                                 tileSize: 256,
                                 attribution:
-                                    '<a href="https://maplibre.org/maplibre-gl-js-docs/api/" target="_blank">MapLibre GL JS、</a>\
+                                    '<a href="https://maplibre.org/maplibre-gl-js-docs/api/" target="_blank">MapLibre GL JS</a> | \
                                     <a href="http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html" target="_blank">地理院タイル</a><br>\
                                     <a href=' + csv01Url + ' target="_blank">データファイルダウンロード</a>',
                             },
@@ -144,8 +144,8 @@
                             },
                         ],
                     },        
-                    center: [142.569580, 43.424999], // starting position [lng, lat]
-                    zoom: 7, // starting zoom
+                    center: mapCenter, // 地図の初期表示位置
+                    zoom: defZoomLevel, // starting zoom
                 });
                 map.on('load', function () {
                     // サークル設定

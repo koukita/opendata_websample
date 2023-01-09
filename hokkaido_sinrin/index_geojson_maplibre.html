@@ -20,7 +20,7 @@
     <font color="green">国有林</font>、
     <font color="red">道有林</font>
     </b>の位置を表したものです。（区域の表示には少し時間がかかります）<br>
-    地図の右上にあるポイントアイコンをクリックすると、現在位置を表示します。
+    地図の左上にあるポイントアイコンをクリックすると、現在位置を表示します。
     <div id="map"></div><!-- 地図表示エリア -->
     出典：国有林【<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A45.html">国土数値情報＞国有林野データ</a>】、   
     道有林【<a href="https://www.pref.hokkaido.lg.jp/sr/dyr/DOP.html">道有林森林資源情報資料ダウンロードページ</a>】<br>
@@ -229,8 +229,8 @@
 
 
         //UI
-        map.addControl(new maplibregl.NavigationControl(), 'top-left');  //ズームコントロール
         map.addControl(new maplibregl.GeolocateControl({positionOptions: {enableHighAccuracy: true},trackUserLocation: true}), 'top-left');  //現在地の表示
+        map.addControl(new maplibregl.NavigationControl(), 'top-left');  //ズームコントロール
         map.addControl(new maplibregl.ScaleControl() );  //スケールバー
         //map.addControl(new maplibregl.AttributionControl({customAttribution: "custom attribution" })); // you can add
 
