@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <meta charset="utf-8" />
+    <title>北海道のUTM（MGRS）グリッド</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <script src="https://koukita.github.io/opendata_websample/Library/maplibre/2.4.0/maplibre-gl.js"></script>
+    <link href="https://koukita.github.io/opendata_websample/Library/maplibre/2.4.0/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        #map { position: absolute; top: 60px; bottom: 0; width: 100%; }
+    </style>
+    北海道内の陸域の1kmのUTMグリッド（MGRSグリッド）を表示する地図です。<a href="https://utmgrid.org/utmgrid-1/" target="_blank">（UTMグリッドとは）</a><br>
+    災害、遭難時にグリッド名を伝えることで、位置を正確に伝えることが可能になります。
+    <div id="map"></div><!-- 地図表示エリア -->
+    <script>
+        var map = new maplibregl.Map({
+            container: 'map', // container id
+            //地理院地図の表示
+            //参考にしたサイト（https://day-journal.com/memo/maplibregljs-005/）
+            style: {
+                version: 8,
+                glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf", //日本語ラベルを表示する際に必要
+                sources: {
+                    t_pale: {
+                        type: 'raster',
+                        tiles: ['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],
+                        tileSize: 256,
+                        attribution:
+                            '<a href="https://maplibre.org/maplibre-gl-js-docs/api/" target="_blank">MapLibre GL JS</a>｜\
+                            <a href="http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html" target="_blank">地理院タイル</a><br>\
+                            <a href="https://www.harp.lg.jp/opendata/dataset/1738.html" target="_blank">データのダウンロード（北海道オープンデータポータル）</a><br>\
+                            作成者：きた　こういち',
+                    },
+                },
+                layers: [
+                    {
+                        id: 't_pale',
+                        type: 'raster',
+                        source: 't_pale',
+                        minzoom: 0,
+                        maxzoom: 18,
+                    },
+                ],
+            },        
+            center: [142.569580, 43.424999], // starting position [lng, lat]
+            zoom: 6, // starting zoom
+        });
+
+        map.on('load',function(){
+            map.addSource('utm_54',{
+                type:'geojson',
+                data:'https://koukita.github.io/opendata_websample/UTM/data/Hokkaido_MGRS_1km_54T_4326.geojson'
+            });
+            map.addSource('utm_55',{
+                type:'geojson',
+                data:'https://koukita.github.io/opendata_websample/UTM/data/Hokkaido_MGRS_1km_55T_4326.geojson'
+            });
+
+            //塗りつぶし
+            map.addLayer({
+                'id': 'utm_54_fill', //ダブらない任意の名称
+                'type': 'fill',
+                'source': 'utm_54',  //上の「addSource」で指定した名称
+                'layout': {},
+                'paint': {
+                    'fill-color': '#ee82ee',
+                    'fill-opacity': 0.3,
+                    'fill-outline-color': '#000000',  //太さは設定できない？
+                }
+            });
+
+            map.addLayer({
+                'id': 'utm_55_fill', //ダブらない任意の名称
+                'type': 'fill',
+                'source': 'utm_55',  //上の「addSource」で指定した名称
+                'layout': {},
+                'paint': {
+                    'fill-color': '#00bfff',
+                    'fill-opacity': 0.3,
+                    'fill-outline-color': '#000000',  //太さは設定できない？
+                }
+            });
+
+            //ラベルの設定
+            map.addLayer({
+                'id': 'utm_54_label', //ダブらない任意の名称
+                'type': 'symbol',
+                'source': 'utm_54',  //上の「addSource」で指定した名称
+                'minzoom': 12,
+                'layout': {
+                    'text-field': ['get', 'MGRS'],
+                    'text-variable-anchor': ['center'],
+                    'text-radial-offset': 0,
+                    //'text-padding': 50, //テキストから指定したピクセル値の範囲にあるラベルを表示しない
+                    'text-justify': 'auto',
+                    'text-size':15,
+                    //'icon-image': "circle_8"
+                },
+                'paint': {
+                    'text-color': 'rgb(0, 0, 255)',  //文字の色
+                    'text-halo-color': 'rgb(255, 255, 255)', //文字の縁取り色
+                    'text-halo-width': 2,  //文字の縁取り幅
+                }
+
+            });
+            map.addLayer({
+                'id': 'utm_55_label', //ダブらない任意の名称
+                'type': 'symbol',
+                'source': 'utm_55',  //上の「addSource」で指定した名称
+                'minzoom': 12,
+                'layout': {
+                    'text-field': ['get', 'MGRS'],
+                    'text-variable-anchor': ['center'],
+                    'text-radial-offset': 0,
+                    //'text-padding': 50, //テキストから指定したピクセル値の範囲にあるラベルを表示しない
+                    'text-justify': 'auto',
+                    'text-size':15,
+                    //'icon-image': "circle_8"
+                },
+                'paint': {
+                    'text-color': 'rgb(0, 0, 255)',  //文字の色
+                    'text-halo-color': 'rgb(255, 255, 255)', //文字の縁取り色
+                    'text-halo-width': 2,  //文字の縁取り幅
+                }
+
+            });
+
+        });
+
+        //UI
+        map.addControl(new maplibregl.GeolocateControl({positionOptions: {enableHighAccuracy: true},trackUserLocation: true}), 'top-left');  //現在地の表示
+        map.addControl(new maplibregl.NavigationControl(), 'top-left');  //ズームコントロール
+        map.addControl(new maplibregl.ScaleControl() );  //スケールバー
+        //map.addControl(new maplibregl.AttributionControl({customAttribution: "custom attribution" })); // you can add
+
+        //debug
+        //map.showTileBoundaries = true;
+        //map.showCollisionBoxes = true;
+
+
+    </script>
+
+</body>
+</html>
