@@ -26,7 +26,10 @@
     道有林【<a href="https://www.pref.hokkaido.lg.jp/sr/dyr/DOP.html">道有林森林資源情報資料ダウンロードページ</a>】<br>
     作成者：きた　こういち<br>
     上記の国有林、道有林のGISデータをQGISで加工しました。<br>
-    データは<a href="https://github.com/koukita/opendata_websample/tree/main/hokkaido_sinrin/geojson">GitHub</a>に保存してあります。     
+    データは<a href="https://github.com/koukita/opendata_websample/tree/main/hokkaido_sinrin/geojson">GitHub</a>に保存してあります。<br>
+    <hr>
+    <h2>その他の地図</h2>
+    <a href="https://koukita.github.io/opendata_websample/hokkaido_sinrin/index_shizenkouen.html" target="_blank">北海道の自然公園</a>     
     <script>
         var map = new maplibregl.Map({
             container: 'map', // container id
@@ -226,7 +229,20 @@
                 }
             });
         });
-
+        //地物に入ったらマウスポインターを指差しにする
+        map.on('mouseenter', 'doyurin_fill', function () {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseenter', 'kokuyurin_fill', function () {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        //レイヤから外に出たらマウスポインターを戻す
+        map.on('mouseleave', 'doyurin_fill', function () {
+            map.getCanvas().style.cursor = '';
+        });
+        map.on('mouseleave', 'kokuyurin_fill', function () {
+            map.getCanvas().style.cursor = '';
+        });
 
         //UI
         map.addControl(new maplibregl.GeolocateControl({positionOptions: {enableHighAccuracy: true},trackUserLocation: true}), 'top-left');  //現在地の表示
