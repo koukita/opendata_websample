@@ -57,6 +57,14 @@
                 type:'geojson',
                 data:'https://koukita.github.io/opendata_websample/UTM/data/Hokkaido_MGRS_1km_55T_4326.geojson'
             });
+            map.addSource('utm_54_line',{
+                type:'geojson',
+                data:'https://koukita.github.io/opendata_websample/UTM/data/Hokkaido_MGRS_1km_Line_54T_4326.geojson'
+            });
+            map.addSource('utm_55_line',{
+                type:'geojson',
+                data:'https://koukita.github.io/opendata_websample/UTM/data/Hokkaido_MGRS_1km_Line_55T_4326.geojson'
+            });
 
             //塗りつぶし
             map.addLayer({
@@ -80,6 +88,28 @@
                     'fill-color': '#00bfff',
                     'fill-opacity': 0.3,
                     'fill-outline-color': '#000000',  //太さは設定できない？
+                }
+            });
+            map.addLayer({
+                'id': '54_line', //ダブらない任意の名称
+                'type': 'line',
+                'minzoom': 11,
+                'source': 'utm_54_line',  //上の「addSource」で指定した名称
+                'layout': {},
+                'paint': {
+                    'line-color': '#808080',
+                    'line-width': 1,
+                }
+            });
+            map.addLayer({
+                'id': '55_line', //ダブらない任意の名称
+                'type': 'line',
+                'minzoom': 11,
+                'source': 'utm_55_line',  //上の「addSource」で指定した名称
+                'layout': {},
+                'paint': {
+                    'line-color': '#808080',
+                    'line-width': 1,
                 }
             });
 
@@ -126,7 +156,26 @@
                 }
 
             });
+            map.addLayer({
+                'id': 'utm_54_line_label', //ダブらない任意の名称
+                'type': 'symbol',
+                'source': 'utm_54_line',  //上の「addSource」で指定した名称
+                'minzoom': 11,
+                'layout': {
+                    'text-field': ['get', 'LABEL'],
+                    'text-anchor': 'center',
+                    'text-ignore-placement':true,
+                    'text-radial-offset': 0,
+                    'text-justify': 'auto',
+                    'text-size':15,
+                },
+                'paint': {
+                    'text-color': 'rgb(0, 0, 0)',  //文字の色
+                    'text-halo-color': 'rgb(255, 255, 255)', //文字の縁取り色
+                    'text-halo-width': 2,  //文字の縁取り幅
+                }
 
+            });
         });
 
         //UI
