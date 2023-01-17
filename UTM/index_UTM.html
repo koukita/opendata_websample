@@ -248,7 +248,7 @@
 
         //UI
         map.addControl(new maplibregl.GeolocateControl({positionOptions: {enableHighAccuracy: true},trackUserLocation: true}), 'top-left');  //現在地の表示
-        map.addControl(new maplibregl.NavigationControl(), 'top-left');  //ズームコントロール
+        map.addControl(new maplibregl.NavigationControl({showCompass:false}), 'top-left');  //ズームコントロール
         map.addControl(new maplibregl.ScaleControl() );  //スケールバー
         //map.addControl(new maplibregl.AttributionControl({customAttribution: "custom attribution" })); // you can add
 
@@ -256,6 +256,12 @@
         //map.showTileBoundaries = true;
         //map.showCollisionBoxes = true;
 
+        //
+        // 右クリック + ドラッグで地図の回転を無効にする
+        map.dragRotate.disable();
+        
+        // タッチ回転ジェスチャを使用してマップの回転を無効にする
+        map.touchZoomRotate.disableRotation();
 
     </script>
 
