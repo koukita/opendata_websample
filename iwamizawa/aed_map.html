@@ -1,0 +1,349 @@
+﻿<!DOCTYPE html>
+<html lang="en"></html>
+<body>
+    <meta charset="utf-8">
+    <title>岩見沢市AEDマップ</title>
+    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@3.5.0/dist/maplibre-gl.css' />
+    <script src='https://unpkg.com/maplibre-gl@3.5.0/dist/maplibre-gl.js'></script>
+    <!-- <script src="https://koukita.github.io/opendata_websample/Library/maplibre/2.4.0/maplibre-gl.js"></script>  地図を表示するためのライブラリ-->
+    <!-- <link href="https://koukita.github.io/opendata_websample/Library/maplibre/2.4.0/maplibre-gl.css" rel="stylesheet" />  地図を表示するためのスタイルシート -->
+    <script type="text/JavaScript" src="https://koukita.github.io/opendata_websample/Library/text/encoding.min.js"></script> <!--CSVの文字コード変更-->
+    <style type="text/css">/* 地図の大きさを指定 */
+        #map_csv{
+            width: 90%;
+            height: 750px;
+        }
+        /* モバイル対応 幅が700px以下の場合は幅を調整 */
+        @media screen and (max-width: 700px) {   /* スクリーンが700px以下ならこの設定で地図を表示 */
+            #map {
+                width: 350px;
+                height: 350px;
+                border: 1px solid #000000;
+            }
+        }
+        /*  Popup内のスタイル  */
+        /* .popup span {
+            display: inline-block;
+            width: 300px;
+        } */
+
+    </style>
+    <div><font color="darkcyan"><b>岩見沢市AEDマップ</b></font></div>
+    
+    <div id="data_kensu"></div>
+    
+    <p><font color="red"><b><!--確認のためにデータの件数を表示--> </b></font></p>
+    
+    <div id="map_csv"></div>
+    <!--地図を表示する部分-->
+    <script>
+    
+        //■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+        //地図に表示するデータはここで指定するだけ
+
+        //データCSVのURL　※緯度経度の記録されたCSVファイル
+        var csv01Url = "https://www.harp.lg.jp/opendata/dataset/1670/resource/3732/012106_aed.csv"
+        
+        //＝＝＝ポップアップリストの設定＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //ポップアップで表示するための列名をリストで指定
+        var popupList = ['名称','住所','方書','設置位置','電話番号']
+        //ポップアップ表の幅
+        var popup_head_width = 100 //見出し列の幅
+        var popup_col_width = 200  //データ列の幅
+
+        //＝＝＝ラベルの設定＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //ラベルとして表示する属性
+        var labelitem ='名称'
+        //フォントサイズ
+        var label_size = 12
+        //文字の色
+        var label_color = "#FF0000"   //赤＝#FF0000　青＝#0000ff　緑＝#008000　黄色＝#ffff00　黒＝#000000　白＝#ffffff
+        //ラベルを表示するズームレベル
+        var labelmin = 9
+        var labelmax = 22
+        //ラベルの表示、非表示
+        var label_visibility = "visible"  //表示＝"visible"　非表示＝"none"
+
+
+        //＝＝＝地図の設定＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //緯度、経度の列名
+        var lat = '緯度'   //緯度を指定
+        var lon = '経度'   //経度を指定
+
+        //地図の初期表示位置（緯度経度で指定）※地理院地図（https://maps.gsi.go.jp/）からコピーできます
+        var mapCenter = [141.7754,43.1960]    //[経度,緯度]で指定
+        //※参考：北海道の中心[142.614,43.517]
+
+        //始めに表示するズームレベル
+        var defZoomLevel = 15
+
+        //ポイントのスタイル設定（円）
+        var circle_fillColor = '#FF0000'   //塗りつぶし色      赤＝#FF0000　青＝#0000ff　緑＝#008000　黄色＝#ffff00　黒＝#000000　白＝#ffffff
+        var circle_fillOpacity = 0.8  //塗りつぶしの透過率
+        var circle_radius = 10         //円の大きさ
+
+        //＝＝＝クラスタリングの設定（データが多い場合はポイントをまとめる）＝＝＝＝
+        //クラスタリングする？（しない：0、する：1）
+        var cluster_on = 0
+
+        //クラスタリング（ポイントをまとめる）距離（ピクセル）
+        var clus_leng = 30
+
+        //■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+
+        //=======================================================
+        //緯度経度のあるCSVをポイントとして地図に表示
+        //=======================================================
+        //CSVを読み込んで、文字コードを変換後Jsonに変換（Fetch APIを使用）＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        fetch(csv01Url) // リクエスト送信
+            .then(response => response.arrayBuffer()) // レスポンスデータを取得
+            .then(data => { // レスポンスデータを処理
+                //非同期CSVのレスポンスが返ってきたら地図作成処理を行う
+                //文字コードを変換後にJsonに変換
+                var csv_unicodeStr01 = csv_unicode(data) //UNICODEに変換する関数にデータを渡す
+                var new_csv = csvToArray(csv_unicodeStr01) //セル内改行があるCSVを修正して配列を作成
+                var json01 = csvToJson(new_csv) //CSVからJsonを作成
+                //===jsonをGeojsonに変換======
+                var geojson_features = [];
+                //jsonを1行ずつ読み込んで配列を作成
+                for (i = 0; i < json01.length; i++) {
+                    var newdata = { 'type': 'Feature', 'properties':json01[i], 'geometry':{'type':'Point', 'coordinates': [Number(json01[i][lon]), Number(json01[i][lat])]}};
+                    geojson_features.push(newdata)
+                };
+                //geojsonを作成
+                var geojson_data = {'type': 'FeatureCollection','name':'point','features':geojson_features};
+                console.log(geojson_data)
+
+                //==================================================
+                //MapLebre GL JS地図を表示する
+                //==================================================            
+                var map = new maplibregl.Map({
+                    container: 'map_csv', // container id
+                    //地理院地図の表示
+                    //参考にしたサイト（https://day-journal.com/memo/maplibregljs-005/）
+                    style: {
+                        version: 8,
+                        glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf", //日本語ラベルを表示する際に必要
+                        sources: {
+                            t_pale: {
+                                type: 'raster',
+                                tiles: ['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],  //地理院淡色地図
+                                tileSize: 256,
+                                attribution:
+                                    '<a href="https://maplibre.org/maplibre-gl-js-docs/api/" target="_blank">MapLibre GL JS</a> | \
+                                    <a href="http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html" target="_blank">地理院タイル</a><br>\
+                                    <a href=' + csv01Url + ' target="_blank">データファイルダウンロード</a>',
+                            },
+                        },
+                        layers: [
+                            {
+                                id: 't_pale',
+                                type: 'raster',
+                                source: 't_pale',
+                                minzoom: 0,
+                                maxzoom: 18,
+                            },
+                        ],
+                    },        
+                    center: mapCenter, // 地図の初期表示位置
+                    zoom: defZoomLevel, // starting zoom
+                });
+                map.on('load', function () {
+                    // サークル設定
+                    map.addSource('csv_point', {
+                        'type': 'geojson',
+                        'data': geojson_data
+                    });
+                    // スタイル設定
+                    map.addLayer({
+                        'id': 'csv_point_circle',
+                        'type': 'circle',
+                        'source': 'csv_point',
+                        'layout': {},
+                        'paint': {
+                            'circle-color': circle_fillColor,
+                            'circle-radius': circle_radius,
+                            'circle-opacity': circle_fillOpacity,
+                        }
+                    });
+                    map.addLayer({
+                        'id': 'csv_point_label', //ダブらない任意の名称
+                        'type': 'symbol',
+                        'source': 'csv_point',  //上の「addSource」で指定した名称
+                        'minzoom': labelmin,
+                        'maxzoom': labelmax,
+                        'layout': {
+                            'text-field': ['get', labelitem],
+                            'text-variable-anchor': ['bottom'],
+                            'text-radial-offset': 1,
+                            // 'text-padding': 50, //テキストから指定したピクセル値の範囲にあるラベルを表示しない
+                            'text-justify': 'auto',
+                            'text-size': label_size,
+                            //'icon-image': "circle_8"
+                            'visibility': label_visibility,
+                        },
+                        'paint': {
+                            'text-color': label_color,  //文字の色
+                            'text-halo-color': 'rgb(255, 255, 255)', //文字の縁取り色
+                            'text-halo-width': 2,  //文字の縁取り幅
+                        }
+                    });
+                });    
+                // 地図上でクリックしたときの処理
+                //参考にしたサイト（http://taustation.com/maplibre-popup/）
+                map.on('click', (evt) => {
+                    // クリック位置の経緯度
+                    let lng = evt.lngLat.lng;
+                    let lat = evt.lngLat.lat;
+            
+                    // クリック位置のFeature群を取得／レイヤーを限定している
+                    let features = map.queryRenderedFeatures(evt.point, {layers: ['csv_point_circle']});
+                    // 取得したFeature群の属性等をコンソールに表示する
+                    features.forEach((feature) => {
+                        if (typeof feature !== 'undefined') {
+                            //ポップアップのテーブルをリストから作成する
+                            var popupitem = "";
+                            for (j = 0; j < popupList.length; j++) {
+                                if (feature.properties[popupList[j]]==null) {
+                                    popupitem = popupitem + '<tr><th scope="row">' + popupList[j] + 
+                                        '</th><td></td></tr>'
+                                }else if (feature.properties[popupList[j]].match(/http/)) {
+                                    popupitem = popupitem + '<tr><th scope="row">' + popupList[j] + 
+                                        '</th><td>' + (feature.properties[popupList[j]] !== null ? '<a href=' + String(feature.properties[popupList[j]]) +' target="_blank">PDFへのリンク</a>' : '') +
+                                        '</td></tr>'
+                                }else{
+                                    popupitem = popupitem + '<tr><th scope="row">' + popupList[j] + 
+                                        '</th><td>' + (feature.properties[popupList[j]] !== null ? String(feature.properties[popupList[j]]) : '') +
+                                        '</td></tr>'
+                                };
+                            };
+                            //ポップアップ時に表示する吹き出し（テーブル）の設定
+                            var popupContent = '<table width="' + (popup_head_width + popup_col_width) + '">\
+                                    <col width="' + popup_head_width + '">\
+                                    <col width="' + popup_col_width + '">' + popupitem + '</table>'; 
+                            let popup = new maplibregl.Popup({
+                                closeOnClick: true,
+                                className: 'popup'
+                            })
+                            .setLngLat([lng, lat])
+                            .setHTML(popupContent)
+                            .setMaxWidth((popup_head_width + popup_col_width + 100) + "px")
+                            .addTo(map);
+                        }
+                    });
+                });
+
+                //UI
+                map.addControl(new maplibregl.NavigationControl(), 'top-left');  //ズームコントロール
+                map.addControl(new maplibregl.GeolocateControl({positionOptions: {enableHighAccuracy: true},trackUserLocation: true}), 'top-right');  //現在地の表示
+                map.addControl(new maplibregl.ScaleControl() );  //スケールバー
+                // map.addControl(new maplibregl.AttributionControl({customAttribution: "データ" })); // you can add
+
+                //=======================================地図表示はここまで==================
+            }); //CSV読み込み終了    
+
+
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //   CSVの文字コードをUNICODEに変換する関数
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        var csv_unicode = function(sjisStr) {
+            //UNICODEに文字コード変換したCSVを作成
+            if (sjisStr){
+                var sjisArray = new Uint8Array(sjisStr)  //文字コードで配列を作成
+                var detectedEncoding = Encoding.detect(sjisArray); //文字コードを判別して、処理を分岐
+                console.log('文字コードは' + detectedEncoding);
+                switch (detectedEncoding){
+                    case 'UNICODE':
+                        var fromEncoding = 'SJIS';  //UNICODEの場合はSJISに変換
+                        break;
+                    case 'UTF8':
+                        var fromEncoding = 'UTF8';
+                        break;                    
+                    case 'SJIS':
+                        var fromEncoding = 'SJIS';
+                        break;
+                    default:
+                        var fromEncoding = 'AUTO';                    
+                };
+                var unicodeArray = Encoding.convert(sjisArray,{ //encoding.jsでSJISをUNIDODEに変換
+                    to: 'UNICODE',
+                    from: fromEncoding  //文字コードの判定は自動
+                });
+                var unicodeStr = Encoding.codeToString(unicodeArray); //UNICODEのテキストデータ
+                unicodeStr = unicodeStr.replace(/\r/g, '') //Excel特有の改行コード「\r」を削除
+            }
+            return unicodeStr;
+        }; //＝＝＝ここまで＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //   セル内改行のCSVを修正する関数（参考：https://qiita.com/momosetkn/items/869aa22ab10f0ec5a529）
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        function csvToArray(csvString) {
+            var separator = '\t';
+            var columnSize = csvString.split(/\r\n|\r|\n/)[0].split(separator).length;
+            var chars = Array.from(csvString.replace(/\r\n|\r|\n/g, '\n'));
+            var csvList = [];
+            var list = [];
+            var queteOpenFlg = false;
+            var buf = "";
+            for (var i = 0; i < chars.length; i++) {
+                if (chars[i] == '"') {
+                queteOpenFlg = queteOpenFlg == false;
+                } else {
+                if ((chars[i] == separator || chars[i] == '\n') && !queteOpenFlg) {
+                    //データ一つのリストになっていたため、カンマ区切りでデータを取得するように変更
+                    listData = buf.split(',');  //カンマ「,」区切りで配列に値を代入
+                    buf = "";
+                    csvList.push(listData); //カンマ区切りのリストをcsvの行として追加
+                } else {
+                    buf += chars[i];
+                }
+                }
+            }
+            var csv = {};
+            csv.dataList = [];
+            for (var i = 0; i < csvList.length; i++) {
+                if (i == 0) {
+                csv.header = csvList[i];  //1行目をヘッダーにする
+                } else {
+                csv.dataList.push(csvList[i]);  //2行目以降はdataListに入れる
+                }
+            }
+            return csv;
+        };
+
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        //   CSVをJsonに変換する関数(csvtoArrayで配列に変換されている場合)
+        //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        function csvToJson(csv2array) {
+            var rows = csv2array.dataList
+            // console.log(rows)
+            var json = [], line = [], row = '', data = {};
+            var i, len, j, len2;
+            //１行ずつデータを分割し、Json形式に変換
+            for (i = 0, len = rows.length; i < len; i++) {
+                if (csv2array.header.length > 0) {  //ヘッダーの要素数が0か確認
+                    data = {};
+                    for (j = 0, len2 = rows[i].length; j < len2; j++) {  //各行の要素数分繰り返し
+                        if (typeof rows[i][j] !== 'undefined') {  //データに型が定義されているか確認
+                            rowData = rows[i][j];  //要素一つを代入
+                            rowData = rowData.replace(/^"(.+)?"$/, '$1'); //不要な「”」文字を変換
+                        } else {
+                            //型が定義されていない場合は「NULL」を代入
+                            rowData = null;
+                        }
+                        data[csv2array.header[j]] = rowData;  //通常はこれ
+                    }
+                    json.push(data);  //１行づつjsonに追加
+                } else {
+                    //ヘッダーの要素が0なら、列名無しでjsonに追加
+                    json.push(rows[i]);
+                }
+            }
+        
+            return json;
+        }
+    </script>
+</body>
+</html>
